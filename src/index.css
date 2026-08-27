@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 38% 95%;
+    --foreground: 150 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 30% 10%;
+
+    --primary: 19 91% 49%;
+    --primary-foreground: 40 38% 97%;
+
+    --secondary: 152 55% 13%;
+    --secondary-foreground: 40 38% 95%;
+
+    --muted: 40 20% 90%;
+    --muted-foreground: 150 15% 35%;
+
+    --accent: 0 68% 45%;
+    --accent-foreground: 40 38% 97%;
+
+    --destructive: 0 68% 45%;
+    --destructive-foreground: 40 38% 97%;
+
+    --border: 150 20% 85%;
+    --input: 150 20% 85%;
+    --ring: 19 91% 49%;
+    --radius: 0.4rem;
+
+    --forest: 152 55% 13%;
+    --forest-deep: 152 60% 8%;
+    --fire: 19 91% 49%;
+    --fire-light: 28 95% 58%;
+    --chili: 0 68% 45%;
+    --cream: 40 38% 95%;
+    --paper: 42 45% 97%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Cairo', 'IBM Plex Sans', sans-serif;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Oswald', 'Cairo', sans-serif;
+  }
+  .font-price {
+    font-family: 'IBM Plex Sans', 'Cairo', sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 1.5px hsl(var(--forest));
+  }
+  .clip-splash {
+    clip-path: polygon(8% 15%, 25% 4%, 42% 10%, 58% 2%, 74% 9%, 92% 3%, 100% 22%,
+      94% 40%, 100% 58%, 90% 76%, 96% 92%, 78% 98%, 62% 90%, 45% 99%,
+      28% 92%, 10% 98%, 2% 78%, 8% 60%, 0% 40%, 6% 24%);
+  }
+}

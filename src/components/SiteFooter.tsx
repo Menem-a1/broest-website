@@ -1,4 +1,6 @@
 import { useSettings } from "@/lib/useSettings";
+import { useBranches, formatHoursAr } from "@/lib/useBranches";
+import { Link } from "react-router-dom";
 import { Phone, MapPin, Clock, Camera, Share2 } from "lucide-react";
 
 // دي قيم تسويقية بسيطة مش محتاجة تتعدل باستمرار، فسايبينها هنا
@@ -9,6 +11,8 @@ const RATING_COUNT = 930;
 
 export function SiteFooter() {
   const { settings } = useSettings();
+  const { branches } = useBranches();
+  const primaryBranch = branches[0];
 
   return (
     <footer className="bg-forest-deep px-4 pb-28 pt-12 text-cream/80 md:px-8 md:pb-12">
@@ -45,13 +49,22 @@ export function SiteFooter() {
                 {settings.phoneDisplay}
               </a>
             </li>
-            <li className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-fire" />
-              <span>{settings.addressAr}</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-fire" />
-              <span>{settings.hoursAr}</span>
+            {primaryBranch && (
+              <>
+                <li className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-fire" />
+                  <span>{primaryBranch.addressAr}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-fire" />
+                  <span>{formatHoursAr(primaryBranch.opensAt, primaryBranch.closesAt)}</span>
+                </li>
+              </>
+            )}
+            <li>
+              <Link to="/contact" className="text-fire-light hover:underline">
+                شوف كل الفروع ←
+              </Link>
             </li>
           </ul>
         </div>

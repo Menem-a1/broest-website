@@ -8,6 +8,7 @@
 // =====================================================
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { Trash2, Plus, Save, Loader2, EyeOff, Eye, Check } from "lucide-react";
 
 type DbMenuItem = {
@@ -19,6 +20,7 @@ type DbMenuItem = {
   price: number;
   badge: string | null;
   is_available: boolean;
+  image_url: string | null;
 };
 
 type DbCategory = {
@@ -43,7 +45,7 @@ export function MenuEditor() {
       .order("sort_order");
     const { data: menuItems } = await supabase
       .from("menu_items")
-      .select("id, category_id, name_ar, name_en, description_ar, price, badge, is_available")
+      .select("id, category_id, name_ar, name_en, description_ar, price, badge, is_available, image_url")
       .order("sort_order");
 
     setCategories(cats || []);
@@ -73,6 +75,7 @@ export function MenuEditor() {
         description_ar: item.description_ar,
         price: item.price,
         is_available: item.is_available,
+        image_url: item.image_url,
       })
       .eq("id", item.id);
 
@@ -83,6 +86,17 @@ export function MenuEditor() {
     } else {
       alert("حصلت مشكلة في الحفظ، حاول تاني");
     }
+  }
+
+  // بتتنادى فورًا لما صورة جديدة تترفع، عشان محتاجش تدوس حفظ منفصل للصورة
+  async function handleImageUploaded(item: DbMenuItem, url: string) {
+    updateLocalItem(item.id, { image_url: url });
+    await saveItem({ ...item, image_url: url });
+  }
+
+  async function handleImageRemoved(item: DbMenuItem) {
+    updateLocalItem(item.id, { image_url: null });
+    await saveItem({ ...item, image_url: null });
   }
 
   async function deleteItem(id: string) {
@@ -113,6 +127,7 @@ export function MenuEditor() {
       description_ar: "",
       price,
       is_available: true,
+      image_url: null,
       sort_order: items.filter((i) => i.category_id === activeCategory).length,
     });
     if (!error) {
@@ -174,7 +189,19 @@ export function MenuEditor() {
               item.is_available ? "border-forest/10" : "border-forest/10 opacity-50"
             }`}
           >
-            <div className="grid gap-3 md:grid-cols-[2fr_3fr_1fr_auto]">
+            <div className="grid gap-3 md:grid-cols-[auto_2fr_3fr_1fr_auto]">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  الصورة
+                </label>
+                <ImageUploadField
+                  currentUrl={item.image_url}
+                  folder="items"
+                  onUploaded={(url) => handleImageUploaded(item, url)}
+                  onRemoved={() => handleImageRemoved(item)}
+                  size="sm"
+                />
+              </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">
                   اسم الصنف

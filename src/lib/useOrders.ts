@@ -15,11 +15,24 @@ export type Order = {
   items: { nameAr: string; size?: string; qty: number; unitPrice: number }[];
   totalPrice: number;
   orderChannel: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
 };
 
-// بتتنادى من صفحة السلة لما العميل يضغط "واتساب" أو "اتصال"
+export type CustomerInfo = {
+  name: string;
+  phone: string;
+  address: string;
+};
+
+// بتتنادى من صفحة السلة لما العميل يأكد الطلب
 // بتسجل الطلب في قاعدة البيانات عشان يظهر في لوحة التحكم
-export async function saveOrder(lines: CartLine[], totalPrice: number, channel: "whatsapp" | "phone") {
+export async function saveOrder(
+  lines: CartLine[],
+  totalPrice: number,
+  customer: CustomerInfo
+) {
   const items = lines.map((l) => ({
     nameAr: l.nameAr,
     size: l.size,
@@ -30,14 +43,19 @@ export async function saveOrder(lines: CartLine[], totalPrice: number, channel: 
   const { error } = await supabase.from("orders").insert({
     items,
     total_price: totalPrice,
-    order_channel: channel,
+    order_channel: "website",
     status: "new",
+    customer_name: customer.name,
+    customer_phone: customer.phone,
+    customer_address: customer.address,
   });
 
   if (error) {
     // مش هنمنع العميل من إكمال الطلب لو فشل التسجيل، بس بنسجل الخطأ
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
+    return { success: false };
   }
+  return { success: true };
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -71,6 +89,9 @@ export function useOrders() {
           items: o.items,
           totalPrice: Number(o.total_price),
           orderChannel: o.order_channel,
+          customerName: o.customer_name || "",
+          customerPhone: o.customer_phone || "",
+          customerAddress: o.customer_address || "",
         }))
       );
     }

@@ -20,9 +20,17 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 bg-forest text-cream shadow-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
         <NavLink to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-fire font-display text-lg font-bold text-forest-deep">
-            بر
-          </div>
+          {settings.logoUrl ? (
+            <img
+              src={settings.logoUrl}
+              alt={settings.nameAr}
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-fire font-display text-lg font-bold text-forest-deep">
+              بر
+            </div>
+          )}
           <span className="font-display text-2xl font-bold tracking-wide">
             {settings.nameAr}
           </span>

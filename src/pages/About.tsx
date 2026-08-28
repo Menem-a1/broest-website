@@ -1,28 +1,13 @@
 import { Star } from "lucide-react";
+import { useReviews } from "@/lib/useReviews";
 
 // قيم التقييم — ثابتة هنا لأنها مش محتاجة تتعدل كل يوم
 const RATING_VALUE = 4.2;
 const RATING_COUNT = 930;
 
-const reviews = [
-  {
-    name: "محمود عادل",
-    stars: 5,
-    text: "أفضل دجاج تندوري جربته في الإسكندرية، طعم مختلف عن أي مكان تاني.",
-  },
-  {
-    name: "سارة إبراهيم",
-    stars: 4,
-    text: "الطلب وصل بسرعة وحار، بس كنت محتاجة صوص إضافي.",
-  },
-  {
-    name: "كريم فتحي",
-    stars: 5,
-    text: "الفاميلي ميل يكفي فعلاً لعيلة كاملة، وسعره كويس جداً.",
-  },
-];
-
 export function About() {
+  const { reviews } = useReviews();
+
   return (
     <div>
       <section className="bg-forest px-4 py-16 text-center md:px-8">
@@ -65,8 +50,8 @@ export function About() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {reviews.map((r, i) => (
-              <div key={i} className="rounded-xl border border-forest/10 bg-white p-5">
+            {reviews.map((r) => (
+              <div key={r.id} className="rounded-xl border border-forest/10 bg-white p-5">
                 <div className="mb-2 flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, s) => (
                     <Star
@@ -77,13 +62,18 @@ export function About() {
                     />
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed text-forest-deep/80">{r.text}</p>
+                <p className="text-sm leading-relaxed text-forest-deep/80">{r.reviewText}</p>
                 <p className="mt-3 font-display text-xs font-semibold text-muted-foreground">
-                  — {r.name}
+                  — {r.customerName}
                 </p>
               </div>
             ))}
           </div>
+          {reviews.length === 0 && (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              لسه مفيش مراجعات معروضة
+            </p>
+          )}
         </div>
       </section>
     </div>

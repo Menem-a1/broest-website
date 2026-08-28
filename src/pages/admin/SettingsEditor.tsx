@@ -4,6 +4,7 @@
 // =====================================================
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { Loader2, Save, Check } from "lucide-react";
 
 type Settings = {
@@ -13,6 +14,8 @@ type Settings = {
   address_ar: string;
   hours_ar: string;
   avg_spend_ar: string;
+  logo_url: string | null;
+  favicon_url: string | null;
 };
 
 export function SettingsEditor() {
@@ -50,6 +53,15 @@ export function SettingsEditor() {
     }
   }
 
+  // بتتنادى فورًا لما صورة جديدة تترفع (شعار أو أيقونة)، عشان تتحفظ على طول
+  async function saveField(field: "logo_url" | "favicon_url", url: string | null) {
+    setSettings((prev) => (prev ? { ...prev, [field]: url } : prev));
+    await supabase
+      .from("restaurant_settings")
+      .update({ [field]: url })
+      .eq("id", 1);
+  }
+
   if (loading || !settings) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -58,7 +70,7 @@ export function SettingsEditor() {
     );
   }
 
-  const fields: { key: keyof Settings; label: string; hint?: string; dir?: string }[] = [
+  const fields: { key: keyof Omit<Settings, "logo_url" | "favicon_url">; label: string; hint?: string; dir?: string }[] = [
     { key: "name_ar", label: "اسم المطعم" },
     { key: "phone_display", label: "رقم التليفون (اللي بيظهر للعملاء)", hint: "مثال: 0120 259 4444" },
     {
@@ -78,6 +90,42 @@ export function SettingsEditor() {
       <p className="mt-1 text-sm text-muted-foreground">
         الحقول دي بتظهر في كل الموقع (الهيدر، الفوتر، زرار الواتساب، إلخ)
       </p>
+
+      <div className="mt-6 grid gap-6 sm:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-forest-deep">
+            شعار الموقع
+          </label>
+          <p className="mb-2 text-xs text-muted-foreground">
+            بيظهر في أعلى كل صفحات الموقع (الهيدر)
+          </p>
+          <ImageUploadField
+            currentUrl={settings.logo_url}
+            folder="branding"
+            onUploaded={(url) => saveField("logo_url", url)}
+            onRemoved={() => saveField("logo_url", null)}
+            shape="circle"
+            size="md"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-forest-deep">
+            أيقونة التبويب (Favicon)
+          </label>
+          <p className="mb-2 text-xs text-muted-foreground">
+            الأيقونة الصغيرة اللي بتظهر في تبويب المتصفح
+          </p>
+          <ImageUploadField
+            currentUrl={settings.favicon_url}
+            folder="branding"
+            onUploaded={(url) => saveField("favicon_url", url)}
+            onRemoved={() => saveField("favicon_url", null)}
+            shape="square"
+            size="sm"
+          />
+        </div>
+      </div>
 
       <div className="mt-6 flex flex-col gap-4">
         {fields.map((field) => (

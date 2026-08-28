@@ -5,7 +5,7 @@
 // =====================================================
 import { useOrders, statusLabel } from "@/lib/useOrders";
 import type { OrderStatus } from "@/lib/useOrders";
-import { Loader2, MessageCircle, Phone, Clock } from "lucide-react";
+import { Loader2, Clock, User, Phone, MapPin } from "lucide-react";
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   new: "bg-fire/15 text-fire",
@@ -57,19 +57,9 @@ export function OrdersView() {
               className="rounded-xl border border-forest/10 bg-white p-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
                   {formatTime(order.createdAt)}
-                  <span className="mx-1">·</span>
-                  {order.orderChannel === "whatsapp" ? (
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="h-3.5 w-3.5" /> واتساب
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5" /> تليفون
-                    </span>
-                  )}
                 </div>
 
                 <select
@@ -83,6 +73,23 @@ export function OrdersView() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="mt-3 flex flex-col gap-1.5 rounded-lg bg-muted/50 p-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <User className="h-3.5 w-3.5 text-fire" />
+                  <span className="font-semibold text-forest-deep">{order.customerName || "بدون اسم"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-3.5 w-3.5 text-fire" />
+                  <a href={`tel:${order.customerPhone}`} className="text-forest-deep hover:underline" dir="ltr">
+                    {order.customerPhone || "—"}
+                  </a>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fire" />
+                  <span className="text-forest-deep">{order.customerAddress || "—"}</span>
+                </div>
               </div>
 
               <ul className="mt-3 flex flex-col gap-1 border-t border-forest/10 pt-3">

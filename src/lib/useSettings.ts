@@ -14,6 +14,8 @@ export type RestaurantSettings = {
   addressAr: string;
   hoursAr: string;
   avgSpendAr: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
 };
 
 const FALLBACK_SETTINGS: RestaurantSettings = {
@@ -24,6 +26,8 @@ const FALLBACK_SETTINGS: RestaurantSettings = {
   addressAr: "2 ميدان سيوف، تاني الرمل، الإسكندرية",
   hoursAr: "يوميًا من 10 صباحًا حتى 2 بعد منتصف الليل",
   avgSpendAr: "٢٠٠–٤٠٠ ج.م للفرد",
+  logoUrl: null,
+  faviconUrl: null,
 };
 
 export function useSettings() {
@@ -51,6 +55,8 @@ export function useSettings() {
           addressAr: data.address_ar,
           hoursAr: data.hours_ar,
           avgSpendAr: data.avg_spend_ar,
+          logoUrl: data.logo_url || null,
+          faviconUrl: data.favicon_url || null,
         });
       }
       // لو حصل خطأ، بنفضل مستخدمين FALLBACK_SETTINGS عشان الموقع يفضل شغال

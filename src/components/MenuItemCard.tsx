@@ -3,7 +3,7 @@ import type { MenuItem } from "@/lib/useMenu";
 import { useCart } from "@/context/CartContext";
 import { Plus, Check } from "lucide-react";
 
-export function MenuItemCard({ item }: { item: MenuItem }) {
+export function MenuItemCard({ item, disabled = false }: { item: MenuItem; disabled?: boolean }) {
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState(item.sizes ? item.sizes[0] : undefined);
   const [justAdded, setJustAdded] = useState(false);
@@ -19,6 +19,16 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   return (
     <div className="group flex flex-col justify-between rounded-xl border border-forest/10 bg-white p-4 transition-shadow hover:shadow-md">
       <div>
+        {item.imageUrl && (
+          <div className="mb-3 aspect-video w-full overflow-hidden rounded-lg bg-muted">
+            <img
+              src={item.imageUrl}
+              alt={item.nameAr}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="font-display text-base font-semibold text-forest-deep">
@@ -60,7 +70,8 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
 
         <button
           onClick={handleAdd}
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-90 ${
+          disabled={disabled}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 ${
             justAdded ? "bg-emerald-600" : "bg-forest hover:bg-fire"
           } text-cream`}
           aria-label="أضف للسلة"

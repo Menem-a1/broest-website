@@ -5,6 +5,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CartDrawer } from "@/components/CartDrawer";
 import { StickyOrderBar } from "@/components/StickyOrderBar";
+import { useSettings } from "@/lib/useSettings";
+import { useFavicon } from "@/lib/useFavicon";
 import { Home } from "@/pages/Home";
 import { Menu } from "@/pages/Menu";
 import { About } from "@/pages/About";
@@ -16,9 +18,15 @@ import { Dashboard } from "@/pages/admin/Dashboard";
 import { MenuEditor } from "@/pages/admin/MenuEditor";
 import { SettingsEditor } from "@/pages/admin/SettingsEditor";
 import { OrdersView } from "@/pages/admin/OrdersView";
+import { HomeEditor } from "@/pages/admin/HomeEditor";
+import { ReviewsEditor } from "@/pages/admin/ReviewsEditor";
+import { BranchesEditor } from "@/pages/admin/BranchesEditor";
 
 // الموقع العام (اللي بيشوفه العملاء): هيدر + فوتر + سلة + شريط الطلب
 function PublicSite() {
+  const { settings } = useSettings();
+  useFavicon(settings.faviconUrl);
+
   return (
     <div className="flex min-h-screen flex-col" dir="rtl">
       <SiteHeader />
@@ -58,6 +66,9 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="orders" element={<OrdersView />} />
               <Route path="menu" element={<MenuEditor />} />
+              <Route path="home" element={<HomeEditor />} />
+              <Route path="reviews" element={<ReviewsEditor />} />
+              <Route path="branches" element={<BranchesEditor />} />
               <Route path="settings" element={<SettingsEditor />} />
             </Route>
 

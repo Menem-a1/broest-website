@@ -1,8 +1,10 @@
 import { useSettings, buildWhatsAppLink } from "@/lib/useSettings";
+import { useBranches, isBranchOpenNow, formatHoursAr } from "@/lib/useBranches";
 import { Phone, MapPin, Clock, MessageCircle } from "lucide-react";
 
 export function Contact() {
   const { settings } = useSettings();
+  const { branches, loading } = useBranches();
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 md:px-8">
@@ -39,27 +41,72 @@ export function Contact() {
         </a>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="flex items-start gap-3 rounded-xl border border-forest/10 bg-white p-6">
-          <MapPin className="mt-1 h-5 w-5 shrink-0 text-fire" />
-          <div>
-            <h4 className="font-display text-sm font-semibold text-forest-deep">العنوان</h4>
-            <p className="mt-1 text-sm text-muted-foreground">{settings.addressAr}</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-3 rounded-xl border border-forest/10 bg-white p-6">
-          <Clock className="mt-1 h-5 w-5 shrink-0 text-fire" />
-          <div>
-            <h4 className="font-display text-sm font-semibold text-forest-deep">مواعيد العمل</h4>
-            <p className="mt-1 text-sm text-muted-foreground">{settings.hoursAr}</p>
-          </div>
-        </div>
-      </div>
+      {/* فروع المطعم */}
+      <div className="mt-10">
+        <h2 className="mb-4 font-display text-2xl font-bold text-forest-deep">فروعنا</h2>
 
-      <div className="mt-8 overflow-hidden rounded-xl border border-forest/10">
-        <div className="flex h-64 items-center justify-center bg-muted text-sm text-muted-foreground">
-          خريطة الموقع — 2 ميدان سيوف، تاني الرمل، الإسكندرية
+        {loading && <p className="text-sm text-muted-foreground">بنجيب الفروع...</p>}
+
+        <div className="flex flex-col gap-4">
+          {branches.map((branch) => {
+            const open = isBranchOpenNow(branch.opensAt, branch.closesAt);
+            return (
+              <div key={branch.id} className="overflow-hidden rounded-xl border border-forest/10 bg-white">
+                <div className="p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="font-display text-lg font-semibold text-forest-deep">
+                      {branch.nameAr}
+                    </h3>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                        open ? "bg-emerald-100 text-emerald-700" : "bg-chili/10 text-chili"
+                      }`}
+                    >
+                      {open ? "مفتوح دلوقتي" : "مقفول دلوقتي"}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-fire" />
+                      <span className="text-muted-foreground">{branch.addressAr}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 shrink-0 text-fire" />
+                      <span className="text-muted-foreground">
+                        {formatHoursAr(branch.opensAt, branch.closesAt)}
+                      </span>
+                    </div>
+                    {branch.phoneDisplay && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 shrink-0 text-fire" />
+                        <a href={`tel:${branch.phoneDisplay}`} className="text-forest-deep hover:underline">
+                          {branch.phoneDisplay}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* خريطة جوجل ماب للفرع ده */}
+                {branch.latitude && branch.longitude && (
+                  <div className="h-56 w-full">
+                    <iframe
+                      title={`خريطة ${branch.nameAr}`}
+                      className="h-full w-full border-0"
+                      loading="lazy"
+                      src={`https://maps.google.com/maps?q=${branch.latitude},${branch.longitude}&z=15&output=embed`}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {!loading && branches.length === 0 && (
+          <p className="text-sm text-muted-foreground">لسه مفيش فروع مضافة</p>
+        )}
       </div>
     </div>
   );

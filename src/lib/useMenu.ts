@@ -15,6 +15,7 @@ export type MenuItem = {
   sizes?: { label: string; price: number }[];
   category: string;
   badge?: string;
+  imageUrl?: string;
 };
 
 export type Category = {
@@ -45,7 +46,7 @@ export function useMenu() {
       // نجيب الأصناف
       const { data: itemsData, error: itemsError } = await supabase
         .from("menu_items")
-        .select("id, category_id, name_ar, name_en, description_ar, price, badge, is_available")
+        .select("id, category_id, name_ar, name_en, description_ar, price, badge, is_available, image_url")
         .eq("is_available", true)
         .order("sort_order");
 
@@ -82,6 +83,7 @@ export function useMenu() {
           price: Number(item.price),
           category: item.category_id,
           badge: item.badge || undefined,
+          imageUrl: item.image_url || undefined,
           sizes: itemSizes.length > 0 ? itemSizes : undefined,
         };
       });

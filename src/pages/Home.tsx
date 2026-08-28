@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Phone, MessageCircle, Star, Clock, MapPin, Flame } from "lucide-react";
 import { useSettings, buildWhatsAppLink } from "@/lib/useSettings";
+import { useBranches, formatHoursAr, isBranchOpenNow } from "@/lib/useBranches";
 import { useMenu } from "@/lib/useMenu";
+import { useHomeContent } from "@/lib/useHomeContent";
 import { MenuItemCard } from "@/components/MenuItemCard";
 
 // دي القيم اللي بتظهر في قسم "الأكتر طلباً" — تقدر تغيرها بتعديل الأرقام هنا
@@ -11,8 +13,11 @@ const FEATURED_IDS = ["family-meal", "zinger", "mix-meals", "chicken-smoked-mix"
 
 export function Home() {
   const { settings } = useSettings();
+  const { branches } = useBranches();
   const { menu } = useMenu();
+  const { content } = useHomeContent();
   const featured = menu.filter((m) => FEATURED_IDS.includes(m.id));
+  const primaryBranch = branches[0];
 
   return (
     <div>
@@ -24,15 +29,15 @@ export function Home() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24 md:px-8">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-fire/15 px-3 py-1 text-xs font-semibold text-fire-light">
-              <Flame className="h-3.5 w-3.5" /> أول تندوري بروست في الإسكندرية
+              <Flame className="h-3.5 w-3.5" /> {content.heroBadgeText}
             </span>
             <h1 className="mt-4 font-display text-5xl font-bold leading-[1.05] text-cream md:text-6xl">
-              دجاج مقرمش
+              {content.heroTitleLine1}
               <br />
-              <span className="text-fire">من غير كلام كتير</span>
+              <span className="text-fire">{content.heroTitleLine2}</span>
             </h1>
             <p className="mt-5 max-w-md text-base leading-relaxed text-cream/70">
-              وجبات عائلية، ساندوتشات بروست، وكريسبي طازة كل يوم. اطلب دلوقتي ووصلها لحد عندك في أقل وقت.
+              {content.heroDescription}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -59,22 +64,34 @@ export function Home() {
               </div>
               <div className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4 text-fire" />
-                <span>مفتوح دلوقتي</span>
+                <span>{primaryBranch && isBranchOpenNow(primaryBranch.opensAt, primaryBranch.closesAt) ? "مفتوح دلوقتي" : "مقفول دلوقتي"}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-fire" />
-                <span>تاني الرمل</span>
+                <span>{primaryBranch?.nameAr || ""}</span>
               </div>
             </div>
           </div>
 
           <div className="relative mx-auto flex h-72 w-72 items-center justify-center md:h-96 md:w-96">
-            <div className="clip-splash absolute inset-0 bg-gradient-to-br from-fire to-chili" />
-            <span className="relative font-display text-3xl font-bold text-cream drop-shadow-lg md:text-4xl">
-              🍗
-              <br />
-              <span className="text-xl md:text-2xl">قرمشة أول قضمة</span>
-            </span>
+            {content.heroImageUrl ? (
+              <div className="h-full w-full overflow-hidden rounded-3xl">
+                <img
+                  src={content.heroImageUrl}
+                  alt={content.heroTitleLine1}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="clip-splash absolute inset-0 bg-gradient-to-br from-fire to-chili" />
+                <span className="relative font-display text-3xl font-bold text-cream drop-shadow-lg md:text-4xl">
+                  🍗
+                  <br />
+                  <span className="text-xl md:text-2xl">قرمشة أول قضمة</span>
+                </span>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -86,7 +103,9 @@ export function Home() {
             <Phone className="h-4 w-4 text-fire" /> {settings.phoneDisplay}
           </a>
           <span className="hidden text-forest/20 md:block">|</span>
-          <span className="text-sm text-muted-foreground">{settings.hoursAr}</span>
+          <span className="text-sm text-muted-foreground">
+            {primaryBranch ? formatHoursAr(primaryBranch.opensAt, primaryBranch.closesAt) : ""}
+          </span>
           <span className="hidden text-forest/20 md:block">|</span>
           <span className="text-sm text-muted-foreground">{settings.avgSpendAr}</span>
         </div>
@@ -129,9 +148,9 @@ export function Home() {
       <section className="bg-forest-deep px-4 py-16 md:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
           {[
-            { title: "طازة كل يوم", desc: "بنقلي الدجاج طازة من غير أي تخزين، من أول ما تطلب لحد ما يوصلك." },
-            { title: "توصيل سريع", desc: "أوردر بيوصلك في أسرع وقت، حار وطازة زي ما طلبته بالظبط." },
-            { title: "وصفة تندوري مميزة", desc: "توابل مخصوصة بنسبة سرية، بتدي طعم مختلف عن أي بروست تاني." },
+            { title: content.whyUsTitle1, desc: content.whyUsDesc1 },
+            { title: content.whyUsTitle2, desc: content.whyUsDesc2 },
+            { title: content.whyUsTitle3, desc: content.whyUsDesc3 },
           ].map((f, i) => (
             <div key={i} className="rounded-xl border border-cream/10 p-6">
               <span className="font-display text-3xl font-bold text-fire">0{i + 1}</span>

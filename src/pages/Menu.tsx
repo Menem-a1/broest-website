@@ -1,11 +1,19 @@
 import { useState, useMemo, useEffect } from "react";
 import { useMenu } from "@/lib/useMenu";
+import { useBranches, isBranchOpenNow } from "@/lib/useBranches";
 import { MenuItemCard } from "@/components/MenuItemCard";
+import { ClosedBanner } from "@/components/ClosedBanner";
 import { Loader2 } from "lucide-react";
 
 export function Menu() {
   const { categories, menu, loading, error } = useMenu();
+  const { branches } = useBranches();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // بنعتبر المطعم مفتوح لو أي فرع فيهم مفتوح دلوقتي
+  // (لو عندك فرع واحد بس، ده بيبقى نفس السلوك القديم بالظبط)
+  const primaryBranch = branches[0];
+  const isOpen = primaryBranch ? isBranchOpenNow(primaryBranch.opensAt, primaryBranch.closesAt) : true;
 
   // لما تجيلنا الأقسام من قاعدة البيانات، نختار أول واحد كافتراضي
   useEffect(() => {
@@ -46,6 +54,10 @@ export function Menu() {
 
       {!loading && !error && (
         <>
+          {!isOpen && primaryBranch && (
+            <ClosedBanner opensAt={primaryBranch.opensAt} closesAt={primaryBranch.closesAt} />
+          )}
+
           {/* category tabs */}
           <div className="sticky top-[64px] z-30 -mx-4 mb-8 overflow-x-auto bg-background/95 px-4 py-3 backdrop-blur md:top-[73px]">
             <div className="flex gap-2">
@@ -72,7 +84,7 @@ export function Menu() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
-                <MenuItemCard key={item.id} item={item} />
+                <MenuItemCard key={item.id} item={item} disabled={!isOpen} />
               ))}
             </div>
           )}

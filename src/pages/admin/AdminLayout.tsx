@@ -5,12 +5,15 @@
 // =====================================================
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList } from "lucide-react";
+import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2 } from "lucide-react";
 
 const navItems = [
   { to: "/admin", label: "الرئيسية", icon: LayoutGrid, end: true },
   { to: "/admin/orders", label: "الطلبات", icon: ClipboardList },
   { to: "/admin/menu", label: "المنيو والأسعار", icon: UtensilsCrossed },
+  { to: "/admin/branches", label: "الفروع", icon: Building2 },
+  { to: "/admin/home", label: "الصفحة الرئيسية", icon: Image },
+  { to: "/admin/reviews", label: "المراجعات", icon: MessageSquareText },
   { to: "/admin/settings", label: "إعدادات المطعم", icon: Settings },
 ];
 

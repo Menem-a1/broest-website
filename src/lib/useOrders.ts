@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { CartLine } from "@/context/CartContext";
+import type { PaymentMethod, PaymentStatus } from "@/lib/payment/types";
 
 export type OrderStatus = "new" | "preparing" | "done" | "cancelled";
 
@@ -18,6 +19,8 @@ export type Order = {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
 };
 
 export type CustomerInfo = {
@@ -31,7 +34,8 @@ export type CustomerInfo = {
 export async function saveOrder(
   lines: CartLine[],
   totalPrice: number,
-  customer: CustomerInfo
+  customer: CustomerInfo,
+  paymentMethod: PaymentMethod = "cash"
 ) {
   const items = lines.map((l) => ({
     nameAr: l.nameAr,
@@ -40,22 +44,30 @@ export async function saveOrder(
     unitPrice: l.unitPrice,
   }));
 
-  const { error } = await supabase.from("orders").insert({
-    items,
-    total_price: totalPrice,
-    order_channel: "website",
-    status: "new",
-    customer_name: customer.name,
-    customer_phone: customer.phone,
-    customer_address: customer.address,
-  });
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
+      items,
+      total_price: totalPrice,
+      order_channel: "website",
+      status: "new",
+      customer_name: customer.name,
+      customer_phone: customer.phone,
+      customer_address: customer.address,
+      payment_method: paymentMethod,
+      // الكاش بيتحسب "لسه مدفوعش" لحد ما يوصل ويتحصّل، والدفع الإلكتروني
+      // هيتحدّث لـ "paid" بعد نجاح المعاملة فعليًا من بوابة الدفع
+      payment_status: "pending",
+    })
+    .select("id")
+    .single();
 
   if (error) {
     // مش هنمنع العميل من إكمال الطلب لو فشل التسجيل، بس بنسجل الخطأ
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
-    return { success: false };
+    return { success: false, orderId: null };
   }
-  return { success: true };
+  return { success: true, orderId: data?.id ?? null };
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -92,6 +104,8 @@ export function useOrders() {
           customerName: o.customer_name || "",
           customerPhone: o.customer_phone || "",
           customerAddress: o.customer_address || "",
+          paymentMethod: (o.payment_method || "cash") as PaymentMethod,
+          paymentStatus: (o.payment_status || "pending") as PaymentStatus,
         }))
       );
     }
@@ -125,5 +139,17 @@ export function useOrders() {
     }
   }
 
-  return { orders, loading, updateStatus, refetch: fetchOrders };
+  async function updatePaymentStatus(orderId: string, paymentStatus: PaymentStatus) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ payment_status: paymentStatus })
+      .eq("id", orderId);
+    if (!error) {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, paymentStatus } : o))
+      );
+    }
+  }
+
+  return { orders, loading, updateStatus, updatePaymentStatus, refetch: fetchOrders };
 }

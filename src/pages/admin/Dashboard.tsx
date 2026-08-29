@@ -5,12 +5,30 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { UtensilsCrossed, Settings, ArrowLeft, ClipboardList } from "lucide-react";
+import { UtensilsCrossed, Settings, ArrowLeft, ClipboardList, Volume2 } from "lucide-react";
 
 export function Dashboard() {
   const [itemCount, setItemCount] = useState<number | null>(null);
   const [categoryCount, setCategoryCount] = useState<number | null>(null);
   const [newOrdersCount, setNewOrdersCount] = useState<number | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+
+  useEffect(() => {
+    // المتصفحات بتمنع تشغيل أي صوت قبل أول تفاعل من المستخدم مع الصفحة.
+    // بمجرد ما تدوس في أي مكان في لوحة التحكم، بنسجل إن الصوت بقى مسموح.
+    const key = "broest_admin_sound_enabled";
+    if (sessionStorage.getItem(key)) {
+      setSoundEnabled(true);
+      return;
+    }
+    function markEnabled() {
+      sessionStorage.setItem(key, "1");
+      setSoundEnabled(true);
+      document.removeEventListener("click", markEnabled);
+    }
+    document.addEventListener("click", markEnabled);
+    return () => document.removeEventListener("click", markEnabled);
+  }, []);
 
   useEffect(() => {
     async function fetchCounts() {
@@ -37,6 +55,14 @@ export function Dashboard() {
       <p className="mt-1 text-sm text-muted-foreground">
         من هنا تقدر تعدّل على كل حاجة في موقع بروست بنفسك
       </p>
+
+      {!soundEnabled && (
+        <div className="mt-4 flex items-center gap-2.5 rounded-lg border border-fire/30 bg-fire/5 px-4 py-3 text-sm text-forest-deep">
+          <Volume2 className="h-4 w-4 shrink-0 text-fire" />
+          دوس في أي مكان في الصفحة عشان تفعّل صوت التنبيه للطلبات الجديدة
+          (المتصفح بيمنع الصوت لحد أول تفاعل منك)
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-fire/30 bg-fire/5 p-6">

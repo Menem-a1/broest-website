@@ -1,6 +1,6 @@
 import { useSettings, buildWhatsAppLink } from "@/lib/useSettings";
 import { useBranches, isBranchOpenNow, formatHoursAr } from "@/lib/useBranches";
-import { Phone, MapPin, Clock, MessageCircle } from "lucide-react";
+import { Phone, MapPin, Clock, MessageCircle, Loader2 } from "lucide-react";
 
 export function Contact() {
   const { settings } = useSettings();
@@ -45,7 +45,11 @@ export function Contact() {
       <div className="mt-10">
         <h2 className="mb-4 font-display text-2xl font-bold text-forest-deep">فروعنا</h2>
 
-        {loading && <p className="text-sm text-muted-foreground">بنجيب الفروع...</p>}
+        {loading && (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-fire" />
+          </div>
+        )}
 
         <div className="flex flex-col gap-4">
           {branches.map((branch) => {
@@ -90,7 +94,7 @@ export function Contact() {
 
                 {/* خريطة جوجل ماب للفرع ده */}
                 {branch.latitude && branch.longitude && (
-                  <div className="h-56 w-full">
+                  <div className="h-56 w-full bg-muted">
                     <iframe
                       title={`خريطة ${branch.nameAr}`}
                       className="h-full w-full border-0"

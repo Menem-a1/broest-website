@@ -26,12 +26,12 @@ export function Home() {
         <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-fire/20 blur-3xl" />
         <div className="pointer-events-none absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-chili/15 blur-3xl" />
 
-        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24 md:px-8">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-24 lg:px-8">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-fire/15 px-3 py-1 text-xs font-semibold text-fire-light">
               <Flame className="h-3.5 w-3.5" /> {content.heroBadgeText}
             </span>
-            <h1 className="mt-4 font-display text-5xl font-bold leading-[1.05] text-cream md:text-6xl">
+            <h1 className="mt-4 font-display text-4xl font-bold leading-[1.1] text-cream sm:text-5xl lg:text-6xl">
               {content.heroTitleLine1}
               <br />
               <span className="text-fire">{content.heroTitleLine2}</span>
@@ -73,7 +73,7 @@ export function Home() {
             </div>
           </div>
 
-          <div className="relative mx-auto flex h-72 w-72 items-center justify-center md:h-96 md:w-96">
+          <div className="relative mx-auto flex h-72 w-72 items-center justify-center lg:h-96 lg:w-96">
             {content.heroImageUrl ? (
               <div className="h-full w-full overflow-hidden rounded-3xl">
                 <img

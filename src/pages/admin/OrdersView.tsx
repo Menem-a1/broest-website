@@ -5,7 +5,8 @@
 // =====================================================
 import { useOrders, statusLabel } from "@/lib/useOrders";
 import type { OrderStatus } from "@/lib/useOrders";
-import { Loader2, Clock, User, Phone, MapPin } from "lucide-react";
+import { paymentMethodLabel, paymentStatusLabel } from "@/lib/payment/types";
+import { Loader2, Clock, User, Phone, MapPin, Banknote, CreditCard, Check } from "lucide-react";
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   new: "bg-fire/15 text-fire",
@@ -27,7 +28,7 @@ function formatTime(iso: string) {
 }
 
 export function OrdersView() {
-  const { orders, loading, updateStatus } = useOrders();
+  const { orders, loading, updateStatus, updatePaymentStatus } = useOrders();
 
   if (loading) {
     return (
@@ -90,6 +91,38 @@ export function OrdersView() {
                   <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fire" />
                   <span className="text-forest-deep">{order.customerAddress || "—"}</span>
                 </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between border-t border-forest/10 pt-3">
+                <div className="flex items-center gap-2 text-sm">
+                  {order.paymentMethod === "cash" ? (
+                    <Banknote className="h-4 w-4 text-fire" />
+                  ) : (
+                    <CreditCard className="h-4 w-4 text-fire" />
+                  )}
+                  <span className="text-muted-foreground">
+                    {paymentMethodLabel(order.paymentMethod)}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      order.paymentStatus === "paid"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : order.paymentStatus === "failed"
+                        ? "bg-chili/15 text-chili"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {paymentStatusLabel(order.paymentStatus)}
+                  </span>
+                </div>
+                {order.paymentStatus !== "paid" && (
+                  <button
+                    onClick={() => updatePaymentStatus(order.id, "paid")}
+                    className="flex items-center gap-1 rounded-full border border-emerald-200 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                  >
+                    <Check className="h-3 w-3" /> اتحصّل
+                  </button>
+                )}
               </div>
 
               <ul className="mt-3 flex flex-col gap-1 border-t border-forest/10 pt-3">

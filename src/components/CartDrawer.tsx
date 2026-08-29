@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { useBranches, isBranchOpenNow } from "@/lib/useBranches";
-import { Minus, Plus, Trash2, CheckCircle2, Loader2, User, Phone, MapPin } from "lucide-react";
+import { usePaymentSettings } from "@/lib/payment/usePaymentSettings";
+import { Minus, Plus, Trash2, CheckCircle2, Loader2, User, Phone, MapPin, Banknote, CreditCard } from "lucide-react";
 import { saveOrder } from "@/lib/useOrders";
+import type { PaymentMethod } from "@/lib/payment/types";
 
 type Step = "cart" | "checkout" | "success";
 
@@ -11,11 +13,13 @@ export function CartDrawer() {
   const { lines, changeQty, removeLine, totalPrice, isCartOpen, setCartOpen, clearCart } =
     useCart();
   const { branches } = useBranches();
+  const { settings: paymentSettings } = usePaymentSettings();
 
   const [step, setStep] = useState<Step>("cart");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -29,6 +33,7 @@ export function CartDrawer() {
       setTimeout(() => {
         setStep("cart");
         setFormError(null);
+        setPaymentMethod("cash");
       }, 300);
     }
   }
@@ -49,11 +54,16 @@ export function CartDrawer() {
     }
 
     setSubmitting(true);
-    const result = await saveOrder(lines, totalPrice, {
-      name: name.trim(),
-      phone: phone.trim(),
-      address: address.trim(),
-    });
+    const result = await saveOrder(
+      lines,
+      totalPrice,
+      {
+        name: name.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+      },
+      paymentMethod
+    );
     setSubmitting(false);
 
     if (result.success) {
@@ -211,6 +221,44 @@ export function CartDrawer() {
                   />
                 </div>
 
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-forest-deep">
+                    طريقة الدفع
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("cash")}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-3 text-sm font-semibold transition-colors ${
+                        paymentMethod === "cash"
+                          ? "border-fire bg-fire/5 text-forest-deep"
+                          : "border-forest/15 text-muted-foreground hover:border-forest/30"
+                      }`}
+                    >
+                      <Banknote className="h-5 w-5" />
+                      كاش عند الاستلام
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => paymentSettings.gatewayEnabled && setPaymentMethod("card")}
+                      disabled={!paymentSettings.gatewayEnabled}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                        paymentMethod === "card"
+                          ? "border-fire bg-fire/5 text-forest-deep"
+                          : "border-forest/15 text-muted-foreground hover:border-forest/30"
+                      }`}
+                    >
+                      <CreditCard className="h-5 w-5" />
+                      دفع إلكتروني
+                    </button>
+                  </div>
+                  {!paymentSettings.gatewayEnabled && (
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      الدفع الإلكتروني مش متاح دلوقتي، الكاش عند الاستلام متاح دايمًا
+                    </p>
+                  )}
+                </div>
+
                 {formError && (
                   <p className="rounded-lg bg-chili/10 px-3 py-2 text-sm text-chili">
                     {formError}
@@ -260,7 +308,10 @@ export function CartDrawer() {
               تم استلام طلبك بنجاح!
             </h3>
             <p className="text-sm text-muted-foreground">
-              هنجهزه ونوصله لك في أقرب وقت. لو احتجنا أي تفاصيل هنتواصل معاك على الرقم اللي كتبته.
+              {paymentMethod === "cash"
+                ? "هنجهزه ونوصله لك في أقرب وقت، وتدفع كاش عند الاستلام."
+                : "هنجهزه ونوصله لك في أقرب وقت."}
+              {" "}لو احتجنا أي تفاصيل هنتواصل معاك على الرقم اللي كتبته.
             </p>
             <button
               onClick={() => handleOpenChange(false)}

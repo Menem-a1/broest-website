@@ -5,6 +5,9 @@
 // =====================================================
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useOrders } from "@/lib/useOrders";
+import { useOrderNotification } from "@/lib/useOrderNotification";
+import { useTabTitleAlert } from "@/lib/useTabTitleAlert";
 import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2 } from "lucide-react";
 
 const navItems = [
@@ -19,6 +22,13 @@ const navItems = [
 
 export function AdminLayout() {
   const { signOut } = useAuth();
+  const { orders } = useOrders();
+  const newOrdersCount = orders.filter((o) => o.status === "new").length;
+
+  // بيشغّل صوت تنبيه تلقائيًا لما عدد الطلبات الجديدة يزيد
+  useOrderNotification(newOrdersCount);
+  // بيغيّر عنوان التبويب عشان يبان في المتصفح حتى لو مش فاتح التبويب ده
+  useTabTitleAlert(newOrdersCount);
 
   return (
     <div className="flex min-h-screen bg-muted/30" dir="rtl">
@@ -35,13 +45,20 @@ export function AdminLayout() {
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                `flex items-center justify-between gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive ? "bg-fire text-forest-deep" : "text-cream/80 hover:bg-cream/10"
                 }`
               }
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex items-center gap-2.5">
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </span>
+              {item.to === "/admin/orders" && newOrdersCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-chili px-1.5 text-[11px] font-bold text-cream">
+                  {newOrdersCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

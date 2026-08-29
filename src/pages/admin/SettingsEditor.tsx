@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
-import { Loader2, Save, Check } from "lucide-react";
+import { Loader2, Save, Check, CreditCard } from "lucide-react";
 
 type Settings = {
   name_ar: string;
@@ -16,6 +16,9 @@ type Settings = {
   avg_spend_ar: string;
   logo_url: string | null;
   favicon_url: string | null;
+  payment_gateway_enabled: boolean;
+  paymob_api_key: string;
+  paymob_integration_id: string;
 };
 
 export function SettingsEditor() {
@@ -70,7 +73,7 @@ export function SettingsEditor() {
     );
   }
 
-  const fields: { key: keyof Omit<Settings, "logo_url" | "favicon_url">; label: string; hint?: string; dir?: string }[] = [
+  const fields: { key: keyof Omit<Settings, "logo_url" | "favicon_url" | "payment_gateway_enabled" | "paymob_api_key" | "paymob_integration_id">; label: string; hint?: string; dir?: string }[] = [
     { key: "name_ar", label: "اسم المطعم" },
     { key: "phone_display", label: "رقم التليفون (اللي بيظهر للعملاء)", hint: "مثال: 0120 259 4444" },
     {
@@ -146,6 +149,74 @@ export function SettingsEditor() {
             )}
           </div>
         ))}
+      </div>
+
+      {/* إعدادات الدفع الإلكتروني */}
+      <div className="mt-8 rounded-xl border border-forest/10 bg-white p-5">
+        <div className="mb-1 flex items-center gap-2">
+          <CreditCard className="h-5 w-5 text-fire" />
+          <h2 className="font-display text-lg font-semibold text-forest-deep">
+            الدفع الإلكتروني
+          </h2>
+        </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          الكاش عند الاستلام شغال دايمًا. الدفع الإلكتروني (فيزا) هيبان للعملاء
+          كخيار بس لو فعّلته هنا وحطيت بيانات حسابك في Paymob.
+        </p>
+
+        <label className="mb-4 flex items-center gap-2.5">
+          <input
+            type="checkbox"
+            checked={settings.payment_gateway_enabled}
+            onChange={(e) =>
+              setSettings((prev) =>
+                prev ? { ...prev, payment_gateway_enabled: e.target.checked } : prev
+              )
+            }
+            className="h-5 w-5 accent-fire"
+          />
+          <span className="text-sm font-semibold text-forest-deep">
+            فعّل الدفع الإلكتروني للعملاء
+          </span>
+        </label>
+
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-forest-deep">
+              Paymob API Key
+            </label>
+            <input
+              type="password"
+              value={settings.paymob_api_key}
+              onChange={(e) =>
+                setSettings((prev) => (prev ? { ...prev, paymob_api_key: e.target.value } : prev))
+              }
+              className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
+              dir="ltr"
+              placeholder="هتلاقيه في حسابك على Paymob بعد التسجيل"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-forest-deep">
+              Integration ID
+            </label>
+            <input
+              value={settings.paymob_integration_id}
+              onChange={(e) =>
+                setSettings((prev) =>
+                  prev ? { ...prev, paymob_integration_id: e.target.value } : prev
+                )
+              }
+              className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
+              dir="ltr"
+            />
+          </div>
+        </div>
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          لسه معملتش حساب في Paymob؟ سيب الخيار ده مقفول لحد ما تعمل الحساب —
+          الموقع هيفضل شغال عادي بالكاش عند الاستلام.
+        </p>
       </div>
 
       <button

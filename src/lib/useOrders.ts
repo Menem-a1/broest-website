@@ -125,8 +125,12 @@ export function useOrders() {
     fetchOrders();
 
     // نتابع أي طلب جديد لحظة بلحظة (Realtime) عشان يظهر فورًا من غير ما تحدّث الصفحة
+    // بنستخدم اسم قناة فريد في كل مرة، عشان لو أكتر من صفحة في نفس الوقت
+    // بتستخدم useOrders() (زي القائمة الجانبية وصفحة الطلبات مع بعض)،
+    // كل واحدة تفتح اشتراكها الخاص من غير ما تتعارض مع التانية
+    const channelName = `orders-changes-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel("orders-changes")
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },

@@ -85,20 +85,29 @@ export function statusLabel(status: OrderStatus) {
 export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   async function fetchOrders() {
-    const { data, error } = await supabase
+    setError(null);
+    const { data, error: fetchError } = await supabase
       .from("orders")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
+    if (fetchError) {
+      console.error("فشل جلب الطلبات:", fetchError.message);
+      setError("حصلت مشكلة في تحميل الطلبات، جرب تحدّث الصفحة");
+      setLoading(false);
+      return;
+    }
+
+    if (data) {
       setOrders(
         data.map((o) => ({
           id: o.id,
           createdAt: o.created_at,
           status: o.status,
-          items: o.items,
+          items: Array.isArray(o.items) ? o.items : [],
           totalPrice: Number(o.total_price),
           orderChannel: o.order_channel,
           customerName: o.customer_name || "",
@@ -151,5 +160,5 @@ export function useOrders() {
     }
   }
 
-  return { orders, loading, updateStatus, updatePaymentStatus, refetch: fetchOrders };
+  return { orders, loading, error, updateStatus, updatePaymentStatus, refetch: fetchOrders };
 }

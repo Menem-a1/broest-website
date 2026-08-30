@@ -28,12 +28,20 @@ function formatTime(iso: string) {
 }
 
 export function OrdersView() {
-  const { orders, loading, updateStatus, updatePaymentStatus } = useOrders();
+  const { orders, loading, error, updateStatus, updatePaymentStatus } = useOrders();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
         <Loader2 className="h-8 w-8 animate-spin text-fire" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-chili/30 bg-chili/5 p-6 text-center text-chili">
+        {error}
       </div>
     );
   }
@@ -126,17 +134,21 @@ export function OrdersView() {
               </div>
 
               <ul className="mt-3 flex flex-col gap-1 border-t border-forest/10 pt-3">
-                {order.items.map((item, i) => (
-                  <li key={i} className="flex items-center justify-between text-sm">
-                    <span>
-                      {item.qty}× {item.nameAr}
-                      {item.size && <span className="text-muted-foreground"> ({item.size})</span>}
-                    </span>
-                    <span className="font-price text-muted-foreground">
-                      {item.unitPrice * item.qty} ج.م
-                    </span>
-                  </li>
-                ))}
+                {order.items.length === 0 ? (
+                  <li className="text-sm text-muted-foreground">مفيش تفاصيل أصناف لهذا الطلب</li>
+                ) : (
+                  order.items.map((item, i) => (
+                    <li key={i} className="flex items-center justify-between text-sm">
+                      <span>
+                        {item.qty}× {item.nameAr}
+                        {item.size && <span className="text-muted-foreground"> ({item.size})</span>}
+                      </span>
+                      <span className="font-price text-muted-foreground">
+                        {item.unitPrice * item.qty} ج.م
+                      </span>
+                    </li>
+                  ))
+                )}
               </ul>
 
               <div className="mt-3 flex items-center justify-between border-t border-forest/10 pt-3">

@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/lib/useOrders";
 import { useOrderNotification } from "@/lib/useOrderNotification";
 import { useTabTitleAlert } from "@/lib/useTabTitleAlert";
+import { AdminErrorBoundary } from "@/pages/admin/AdminErrorBoundary";
 import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2 } from "lucide-react";
 
 const navItems = [
@@ -22,8 +23,11 @@ const navItems = [
 
 export function AdminLayout() {
   const { signOut } = useAuth();
-  const { orders } = useOrders();
-  const newOrdersCount = orders.filter((o) => o.status === "new").length;
+  // بنجيب الطلبات هنا بس عشان عداد الإشعارات في القائمة الجانبية.
+  // لو حصل أي خطأ، بنتجاهله بهدوء (newOrdersCount = 0) بدل ما نكسر
+  // القائمة الجانبية كلها وكل صفحات لوحة التحكم معاها
+  const { orders, error: ordersError } = useOrders();
+  const newOrdersCount = ordersError ? 0 : orders.filter((o) => o.status === "new").length;
 
   // بيشغّل صوت تنبيه تلقائيًا لما عدد الطلبات الجديدة يزيد
   useOrderNotification(newOrdersCount);
@@ -83,7 +87,9 @@ export function AdminLayout() {
 
       {/* المحتوى */}
       <main className="flex-1 overflow-y-auto p-6 md:p-8">
-        <Outlet />
+        <AdminErrorBoundary>
+          <Outlet />
+        </AdminErrorBoundary>
       </main>
     </div>
   );

@@ -55,7 +55,8 @@ export function ReviewsEditor() {
       setSavedId(review.id);
       setTimeout(() => setSavedId(null), 1500);
     } else {
-      alert("حصلت مشكلة في الحفظ، حاول تاني");
+      console.error("خطأ في حفظ المراجعة:", error);
+      alert(`حصلت مشكلة في الحفظ:\n${error.message}`);
     }
   }
 
@@ -65,7 +66,8 @@ export function ReviewsEditor() {
     if (!error) {
       setReviews((prev) => prev.filter((r) => r.id !== id));
     } else {
-      alert("حصلت مشكلة في الحذف، حاول تاني");
+      console.error("خطأ في حذف المراجعة:", error);
+      alert(`حصلت مشكلة في الحذف:\n${error.message}`);
     }
   }
 
@@ -80,7 +82,8 @@ export function ReviewsEditor() {
     if (!error) {
       loadReviews();
     } else {
-      alert("حصلت مشكلة في الإضافة، حاول تاني");
+      console.error("خطأ في إضافة المراجعة:", error);
+      alert(`حصلت مشكلة في الإضافة:\n${error.message}`);
     }
   }
 

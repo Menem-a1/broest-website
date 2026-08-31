@@ -77,7 +77,8 @@ export function BranchesEditor() {
       setSavedId(branch.id);
       setTimeout(() => setSavedId(null), 1500);
     } else {
-      alert("حصلت مشكلة في الحفظ، حاول تاني");
+      console.error("خطأ في حفظ الفرع:", error);
+      alert(`حصلت مشكلة في الحفظ:\n${error.message}`);
     }
   }
 
@@ -87,7 +88,8 @@ export function BranchesEditor() {
     if (!error) {
       setBranches((prev) => prev.filter((b) => b.id !== id));
     } else {
-      alert("حصلت مشكلة في الحذف، حاول تاني");
+      console.error("خطأ في حذف الفرع:", error);
+      alert(`حصلت مشكلة في الحذف:\n${error.message}`);
     }
   }
 
@@ -98,7 +100,8 @@ export function BranchesEditor() {
     if (!error) {
       loadBranches();
     } else {
-      alert("حصلت مشكلة في الإضافة، حاول تاني");
+      console.error("خطأ في إضافة الفرع:", error);
+      alert(`حصلت مشكلة في الإضافة:\n${error.message}`);
     }
   }
 

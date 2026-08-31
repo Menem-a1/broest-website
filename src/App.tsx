@@ -12,7 +12,7 @@ import { Menu } from "@/pages/Menu";
 import { About } from "@/pages/About";
 import { Contact } from "@/pages/Contact";
 import { Login } from "@/pages/admin/Login";
-import { RequireAuth } from "@/pages/admin/RequireAuth";
+import { RequireAuth, RequireDeveloper } from "@/pages/admin/RequireAuth";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { Dashboard } from "@/pages/admin/Dashboard";
 import { MenuEditor } from "@/pages/admin/MenuEditor";
@@ -21,6 +21,7 @@ import { OrdersView } from "@/pages/admin/OrdersView";
 import { HomeEditor } from "@/pages/admin/HomeEditor";
 import { ReviewsEditor } from "@/pages/admin/ReviewsEditor";
 import { BranchesEditor } from "@/pages/admin/BranchesEditor";
+import { UsersEditor } from "@/pages/admin/UsersEditor";
 
 // الموقع العام (اللي بيشوفه العملاء): هيدر + فوتر + سلة + شريط الطلب
 function PublicSite() {
@@ -65,11 +66,54 @@ function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="orders" element={<OrdersView />} />
-              <Route path="menu" element={<MenuEditor />} />
-              <Route path="home" element={<HomeEditor />} />
-              <Route path="reviews" element={<ReviewsEditor />} />
-              <Route path="branches" element={<BranchesEditor />} />
-              <Route path="settings" element={<SettingsEditor />} />
+              <Route
+                path="menu"
+                element={
+                  <RequireDeveloper>
+                    <MenuEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="home"
+                element={
+                  <RequireDeveloper>
+                    <HomeEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="reviews"
+                element={
+                  <RequireDeveloper>
+                    <ReviewsEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="branches"
+                element={
+                  <RequireDeveloper>
+                    <BranchesEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="settings"
+                element={
+                  <RequireDeveloper>
+                    <SettingsEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="users"
+                element={
+                  <RequireDeveloper>
+                    <UsersEditor />
+                  </RequireDeveloper>
+                }
+              />
             </Route>
 
             {/* الموقع العام لكل العملاء */}

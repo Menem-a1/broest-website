@@ -25,3 +25,24 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+// بتلف الصفحات اللي مخصوصة بـ developer بس (المنيو، الفروع، المراجعات،
+// الصفحة الرئيسية، الإعدادات). لو owner حاول يدخل رابط الصفحة مباشرة
+// من غير ما يمر بالقائمة، بنرجّعه لصفحة الطلبات بدل ما نوريه الصفحة
+export function RequireDeveloper({ children }: { children: ReactNode }) {
+  const { role, roleLoading } = useAuth();
+
+  if (roleLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-fire" />
+      </div>
+    );
+  }
+
+  if (role !== "developer") {
+    return <Navigate to="/admin/orders" replace />;
+  }
+
+  return <>{children}</>;
+}

@@ -9,20 +9,25 @@ import { useOrders } from "@/lib/useOrders";
 import { useOrderNotification } from "@/lib/useOrderNotification";
 import { useTabTitleAlert } from "@/lib/useTabTitleAlert";
 import { AdminErrorBoundary } from "@/pages/admin/AdminErrorBoundary";
-import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2 } from "lucide-react";
+import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2, Users } from "lucide-react";
 
 const navItems = [
-  { to: "/admin", label: "الرئيسية", icon: LayoutGrid, end: true },
-  { to: "/admin/orders", label: "الطلبات", icon: ClipboardList },
-  { to: "/admin/menu", label: "المنيو والأسعار", icon: UtensilsCrossed },
-  { to: "/admin/branches", label: "الفروع", icon: Building2 },
-  { to: "/admin/home", label: "الصفحة الرئيسية", icon: Image },
-  { to: "/admin/reviews", label: "المراجعات", icon: MessageSquareText },
-  { to: "/admin/settings", label: "إعدادات المطعم", icon: Settings },
+  { to: "/admin", label: "الرئيسية", icon: LayoutGrid, end: true, developerOnly: false },
+  { to: "/admin/orders", label: "الطلبات", icon: ClipboardList, developerOnly: false },
+  { to: "/admin/menu", label: "المنيو والأسعار", icon: UtensilsCrossed, developerOnly: true },
+  { to: "/admin/branches", label: "الفروع", icon: Building2, developerOnly: true },
+  { to: "/admin/home", label: "الصفحة الرئيسية", icon: Image, developerOnly: true },
+  { to: "/admin/reviews", label: "المراجعات", icon: MessageSquareText, developerOnly: true },
+  { to: "/admin/settings", label: "إعدادات المطعم", icon: Settings, developerOnly: true },
+  { to: "/admin/users", label: "المستخدمين والصلاحيات", icon: Users, developerOnly: true },
 ];
 
 export function AdminLayout() {
-  const { signOut } = useAuth();
+  const { signOut, role, roleLoading } = useAuth();
+  const isDeveloper = role === "developer";
+  // لحد ما الدور يتحمل، منوريش أي عناصر مقصورة على developer
+  // (أفضل من إظهارها لحظة واحدة ثم اختفائها)
+  const visibleNavItems = navItems.filter((item) => !item.developerOnly || (isDeveloper && !roleLoading));
   // بنجيب الطلبات هنا بس عشان عداد الإشعارات في القائمة الجانبية.
   // لو حصل أي خطأ، بنتجاهله بهدوء (newOrdersCount = 0) بدل ما نكسر
   // القائمة الجانبية كلها وكل صفحات لوحة التحكم معاها
@@ -43,7 +48,7 @@ export function AdminLayout() {
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 p-3">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -88,7 +93,19 @@ export function AdminLayout() {
       {/* المحتوى */}
       <main className="flex-1 overflow-y-auto p-6 md:p-8">
         <AdminErrorBoundary>
-          <Outlet />
+          {!roleLoading && !role ? (
+            <div className="mx-auto mt-12 max-w-md rounded-xl border border-chili/30 bg-chili/5 p-6 text-center">
+              <h2 className="font-display text-lg font-bold text-forest-deep">
+                حسابك مش مفعّل لسه
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                إنت مسجل دخول بنجاح، لكن مفيش صلاحيات متحددة لحسابك دلوقتي.
+                كلّم المطوّر بتاع الموقع عشان يفعّلك من صفحة "المستخدمين والصلاحيات".
+              </p>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </AdminErrorBoundary>
       </main>
     </div>

@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
-import { Loader2, Save, Check, CreditCard } from "lucide-react";
+import { Loader2, Save, Check, CreditCard, Printer, RotateCcw } from "lucide-react";
 
 type Settings = {
   name_ar: string;
@@ -19,6 +19,16 @@ type Settings = {
   payment_gateway_enabled: boolean;
   paymob_api_key: string;
   paymob_integration_id: string;
+  printer_ip: string;
+  printer_enabled: boolean;
+  receipt_show_order_number: boolean;
+  receipt_show_source_label: boolean;
+  receipt_source_label_text: string;
+  receipt_show_phone: boolean;
+  receipt_show_address: boolean;
+  receipt_show_payment_method: boolean;
+  receipt_footer_text: string;
+  online_order_counter: number;
 };
 
 export function SettingsEditor() {
@@ -65,6 +75,18 @@ export function SettingsEditor() {
       .eq("id", 1);
   }
 
+  async function handleResetCounter() {
+    if (!confirm('متأكد إنك عايز ترجّع عداد الطلبات الأونلاين لـ "0"؟ الطلب الجاي هيطلع رقمه #1.'))
+      return;
+    const { error } = await supabase.rpc("reset_online_order_counter");
+    if (!error) {
+      setSettings((prev) => (prev ? { ...prev, online_order_counter: 0 } : prev));
+    } else {
+      console.error("خطأ في تصفير العداد:", error);
+      alert(`حصلت مشكلة:\n${error.message}`);
+    }
+  }
+
   if (loading || !settings) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -73,7 +95,29 @@ export function SettingsEditor() {
     );
   }
 
-  const fields: { key: keyof Omit<Settings, "logo_url" | "favicon_url" | "payment_gateway_enabled" | "paymob_api_key" | "paymob_integration_id">; label: string; hint?: string; dir?: string }[] = [
+  const fields: {
+    key: keyof Omit<
+      Settings,
+      | "logo_url"
+      | "favicon_url"
+      | "payment_gateway_enabled"
+      | "paymob_api_key"
+      | "paymob_integration_id"
+      | "printer_ip"
+      | "printer_enabled"
+      | "receipt_show_order_number"
+      | "receipt_show_source_label"
+      | "receipt_source_label_text"
+      | "receipt_show_phone"
+      | "receipt_show_address"
+      | "receipt_show_payment_method"
+      | "receipt_footer_text"
+      | "online_order_counter"
+    >;
+    label: string;
+    hint?: string;
+    dir?: string;
+  }[] = [
     { key: "name_ar", label: "اسم المطعم" },
     { key: "phone_display", label: "رقم التليفون (اللي بيظهر للعملاء)", hint: "مثال: 0120 259 4444" },
     {
@@ -217,6 +261,170 @@ export function SettingsEditor() {
           لسه معملتش حساب في Paymob؟ سيب الخيار ده مقفول لحد ما تعمل الحساب —
           الموقع هيفضل شغال عادي بالكاش عند الاستلام.
         </p>
+      </div>
+
+      {/* إعدادات الطباعة التلقائية */}
+      <div className="mt-8 rounded-xl border border-forest/10 bg-white p-5">
+        <div className="mb-1 flex items-center gap-2">
+          <Printer className="h-5 w-5 text-fire" />
+          <h2 className="font-display text-lg font-semibold text-forest-deep">
+            الطباعة التلقائية
+          </h2>
+        </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          لو عندك طابعة شبكة في المطعم، فعّلها من هنا وتحكم في شكل الإيصال اللي بيطبع
+          تلقائيًا لكل طلب جديد من الموقع.
+        </p>
+
+        <label className="mb-4 flex items-center gap-2.5">
+          <input
+            type="checkbox"
+            checked={settings.printer_enabled}
+            onChange={(e) =>
+              setSettings((prev) => (prev ? { ...prev, printer_enabled: e.target.checked } : prev))
+            }
+            className="h-5 w-5 accent-fire"
+          />
+          <span className="text-sm font-semibold text-forest-deep">فعّل الطباعة التلقائية</span>
+        </label>
+
+        <div className="mb-5">
+          <label className="mb-1 block text-sm font-semibold text-forest-deep">
+            IP الطابعة
+          </label>
+          <input
+            value={settings.printer_ip}
+            onChange={(e) =>
+              setSettings((prev) => (prev ? { ...prev, printer_ip: e.target.value } : prev))
+            }
+            dir="ltr"
+            placeholder="192.168.1.50"
+            className="w-full max-w-xs rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            رقم IP الثابت بتاع طابعة الشبكة، هتلاقيه من إعدادات الطابعة نفسها
+          </p>
+        </div>
+
+        <div className="mb-5 border-t border-forest/5 pt-4">
+          <h3 className="mb-3 text-sm font-semibold text-forest-deep">شكل الإيصال</h3>
+
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={settings.receipt_show_source_label}
+                onChange={(e) =>
+                  setSettings((prev) =>
+                    prev ? { ...prev, receipt_show_source_label: e.target.checked } : prev
+                  )
+                }
+                className="h-4 w-4 accent-fire"
+              />
+              <span className="text-sm text-forest-deep">اكتب إن الطلب جاي من الموقع</span>
+            </label>
+
+            {settings.receipt_show_source_label && (
+              <input
+                value={settings.receipt_source_label_text}
+                onChange={(e) =>
+                  setSettings((prev) =>
+                    prev ? { ...prev, receipt_source_label_text: e.target.value } : prev
+                  )
+                }
+                placeholder="طلب من الموقع"
+                className="mr-6 w-full max-w-xs rounded-lg border border-forest/15 bg-white px-3 py-2 text-sm"
+              />
+            )}
+
+            <label className="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={settings.receipt_show_order_number}
+                onChange={(e) =>
+                  setSettings((prev) =>
+                    prev ? { ...prev, receipt_show_order_number: e.target.checked } : prev
+                  )
+                }
+                className="h-4 w-4 accent-fire"
+              />
+              <span className="text-sm text-forest-deep">اكتب رقم الطلب الأونلاين (#1، #2...)</span>
+            </label>
+
+            <label className="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={settings.receipt_show_phone}
+                onChange={(e) =>
+                  setSettings((prev) =>
+                    prev ? { ...prev, receipt_show_phone: e.target.checked } : prev
+                  )
+                }
+                className="h-4 w-4 accent-fire"
+              />
+              <span className="text-sm text-forest-deep">اكتب رقم تليفون العميل</span>
+            </label>
+
+            <label className="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={settings.receipt_show_address}
+                onChange={(e) =>
+                  setSettings((prev) =>
+                    prev ? { ...prev, receipt_show_address: e.target.checked } : prev
+                  )
+                }
+                className="h-4 w-4 accent-fire"
+              />
+              <span className="text-sm text-forest-deep">اكتب عنوان العميل</span>
+            </label>
+
+            <label className="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={settings.receipt_show_payment_method}
+                onChange={(e) =>
+                  setSettings((prev) =>
+                    prev ? { ...prev, receipt_show_payment_method: e.target.checked } : prev
+                  )
+                }
+                className="h-4 w-4 accent-fire"
+              />
+              <span className="text-sm text-forest-deep">اكتب طريقة الدفع (كاش/فيزا)</span>
+            </label>
+          </div>
+
+          <div className="mt-4">
+            <label className="mb-1 block text-sm font-semibold text-forest-deep">
+              نص أسفل الإيصال
+            </label>
+            <input
+              value={settings.receipt_footer_text}
+              onChange={(e) =>
+                setSettings((prev) => (prev ? { ...prev, receipt_footer_text: e.target.value } : prev))
+              }
+              placeholder="شكرًا لتعاملكم معنا"
+              className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg bg-forest/5 p-3">
+          <div>
+            <p className="text-sm font-semibold text-forest-deep">
+              عداد الطلبات الأونلاين الحالي: #{settings.online_order_counter}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              الطلب الجاي هيطلع رقمه #{settings.online_order_counter + 1}
+            </p>
+          </div>
+          <button
+            onClick={handleResetCounter}
+            className="flex items-center gap-1.5 rounded-full border border-forest/20 px-3 py-1.5 text-xs font-semibold text-forest-deep hover:bg-forest/10"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> رجّع العداد لـ 0
+          </button>
+        </div>
       </div>
 
       <button

@@ -70,7 +70,11 @@ export function CartDrawer() {
       setStep("success");
       clearCart();
     } else {
-      setFormError("حصلت مشكلة في إرسال الطلب، حاول تاني");
+      setFormError(
+        result.errorMessage
+          ? `حصلت مشكلة في إرسال الطلب: ${result.errorMessage}`
+          : "حصلت مشكلة في إرسال الطلب، حاول تاني"
+      );
     }
   }
 

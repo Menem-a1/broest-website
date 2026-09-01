@@ -44,6 +44,14 @@ export async function saveOrder(
     unitPrice: l.unitPrice,
   }));
 
+  // ناخد رقم الطلب الأونلاين الجاي قبل ما نسجل الطلب، عشان يتحفظ معاه
+  const { data: orderNumberData, error: numberError } = await supabase.rpc(
+    "get_next_online_order_number"
+  );
+  if (numberError) {
+    console.error("خطأ في جلب رقم الطلب:", numberError);
+  }
+
   const { data, error } = await supabase
     .from("orders")
     .insert({
@@ -55,6 +63,7 @@ export async function saveOrder(
       customer_phone: customer.phone,
       customer_address: customer.address,
       payment_method: paymentMethod,
+      online_order_number: orderNumberData ?? null,
       // الكاش بيتحسب "لسه مدفوعش" لحد ما يوصل ويتحصّل، والدفع الإلكتروني
       // هيتحدّث لـ "paid" بعد نجاح المعاملة فعليًا من بوابة الدفع
       payment_status: "pending",
@@ -63,11 +72,12 @@ export async function saveOrder(
     .single();
 
   if (error) {
-    // مش هنمنع العميل من إكمال الطلب لو فشل التسجيل، بس بنسجل الخطأ
+    // مش هنمنع العميل من إكمال الطلب لو فشل التسجيل، بس بنسجل الخطأ ونرجعه
+    // عشان يبان لصاحب الموقع إيه السبب بالظبط (مش رسالة عامة)
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
-    return { success: false, orderId: null };
+    return { success: false, orderId: null, errorMessage: error.message };
   }
-  return { success: true, orderId: data?.id ?? null };
+  return { success: true, orderId: data?.id ?? null, errorMessage: null };
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {

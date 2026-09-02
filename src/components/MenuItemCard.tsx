@@ -3,20 +3,24 @@ import type { MenuItem } from "@/lib/useMenu";
 import { useCart } from "@/context/CartContext";
 import { useCustomerAuth } from "@/context/CustomerAuthContext";
 import { useFavorites } from "@/lib/useFavorites";
+import { useMenuDiscounts } from "@/lib/useMenuDiscounts";
 import { Plus, Check, Heart } from "lucide-react";
 
 export function MenuItemCard({ item, disabled = false }: { item: MenuItem; disabled?: boolean }) {
   const { addItem } = useCart();
   const { session } = useCustomerAuth();
   const { favoriteIds, toggleFavorite } = useFavorites(session?.user?.id);
+  const { applyDiscount } = useMenuDiscounts();
   const [selectedSize, setSelectedSize] = useState(item.sizes ? item.sizes[0] : undefined);
   const [justAdded, setJustAdded] = useState(false);
 
-  const displayPrice = selectedSize ? selectedSize.price : item.price;
+  const originalPrice = selectedSize ? selectedSize.price : item.price;
+  const displayPrice = applyDiscount(item.id, item.category, originalPrice);
+  const hasDiscount = displayPrice < originalPrice;
   const isFavorite = favoriteIds.has(item.id);
 
   const handleAdd = () => {
-    addItem(item, selectedSize);
+    addItem(item, selectedSize, displayPrice);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1200);
   };
@@ -99,7 +103,14 @@ export function MenuItemCard({ item, disabled = false }: { item: MenuItem; disab
       )}
 
       <div className="mt-3 flex items-center justify-between gap-2">
-        <span className="font-price text-lg font-bold text-fire">{displayPrice} ج.م</span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-price text-lg font-bold text-fire">{displayPrice} ج.م</span>
+          {hasDiscount && (
+            <span className="font-price text-xs text-muted-foreground line-through">
+              {originalPrice} ج.م
+            </span>
+          )}
+        </div>
 
         <button
           onClick={handleAdd}

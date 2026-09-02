@@ -14,7 +14,8 @@ import type { Session } from "@supabase/supabase-js";
 type CustomerAuthContextType = {
   session: Session | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -39,14 +40,23 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  async function signInWithGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        // بعد تسجيل الدخول، نرجّع العميل لنفس الصفحة اللي كان فيها
-        redirectTo: window.location.href,
-      },
-    });
+  async function signUp(email: string, password: string) {
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      if (error.message.includes("already registered")) {
+        return { error: "الإيميل ده مسجل بالفعل، جرب تسجيل الدخول" };
+      }
+      return { error: "حصلت مشكلة في التسجيل، حاول تاني" };
+    }
+    return { error: null };
+  }
+
+  async function signIn(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      return { error: "الإيميل أو الباسورد غلط" };
+    }
+    return { error: null };
   }
 
   async function signOut() {
@@ -54,7 +64,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <CustomerAuthContext.Provider value={{ session, loading, signInWithGoogle, signOut }}>
+    <CustomerAuthContext.Provider value={{ session, loading, signUp, signIn, signOut }}>
       {children}
     </CustomerAuthContext.Provider>
   );

@@ -16,7 +16,6 @@ import { useCart } from "@/context/CartContext";
 import { statusLabel } from "@/lib/useOrders";
 import { supabase } from "@/lib/supabase";
 import {
-  LogIn,
   LogOut,
   Loader2,
   Heart,
@@ -32,8 +31,103 @@ import { submitOrderReview } from "@/lib/useOrderReview";
 
 type Tab = "orders" | "favorites" | "addresses";
 
+// ===== شاشة الدخول / التسجيل =====
+function AuthGate() {
+  const { signIn, signUp } = useCustomerAuth();
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [signupDone, setSignupDone] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!email.trim() || !password.trim()) {
+      setError("املأ الإيميل والباسورد");
+      return;
+    }
+    setSubmitting(true);
+    const result =
+      mode === "login" ? await signIn(email.trim(), password) : await signUp(email.trim(), password);
+    setSubmitting(false);
+    if (result.error) {
+      setError(result.error);
+    } else if (mode === "signup") {
+      setSignupDone(true);
+    }
+  }
+
+  if (signupDone) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-20 text-center">
+        <h1 className="font-display text-2xl font-bold text-forest-deep">تم التسجيل بنجاح</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          افتح إيميلك ودوس على رابط التأكيد، وبعدها سجّل دخولك عادي
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-sm px-4 py-16">
+      <h1 className="text-center font-display text-2xl font-bold text-forest-deep">حسابك</h1>
+      <p className="mt-2 text-center text-sm text-muted-foreground">
+        سجّل عشان تحفظ عناوينك وتشوف سجل طلباتك — اختياري تمامًا، تقدر تكمل تطلب كضيف
+      </p>
+
+      <div className="mt-6 flex rounded-full border border-forest/15 p-1">
+        <button
+          onClick={() => setMode("login")}
+          className={`flex-1 rounded-full py-2 text-sm font-bold ${
+            mode === "login" ? "bg-forest text-cream" : "text-muted-foreground"
+          }`}
+        >
+          تسجيل دخول
+        </button>
+        <button
+          onClick={() => setMode("signup")}
+          className={`flex-1 rounded-full py-2 text-sm font-bold ${
+            mode === "signup" ? "bg-forest text-cream" : "text-muted-foreground"
+          }`}
+        >
+          حساب جديد
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="الإيميل"
+          className="rounded-lg border border-forest/20 px-3 py-2.5 text-sm"
+          dir="ltr"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="الباسورد"
+          className="rounded-lg border border-forest/20 px-3 py-2.5 text-sm"
+          dir="ltr"
+        />
+        {error && <p className="text-xs font-semibold text-chili">{error}</p>}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="mt-1 rounded-full bg-fire py-3 font-display text-sm font-bold text-forest-deep disabled:opacity-50"
+        >
+          {submitting ? "..." : mode === "login" ? "تسجيل دخول" : "إنشاء حساب"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export function Account() {
-  const { session, loading, signInWithGoogle, signOut } = useCustomerAuth();
+  const { session, loading, signOut } = useCustomerAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("orders");
 
@@ -45,23 +139,9 @@ export function Account() {
     );
   }
 
-  // العميل مش مسجل دخول — نعرضله دعوة لتسجيل الدخول (اختياري تمامًا)
+  // العميل مش مسجل دخول — نعرضله فورم دخول/تسجيل (اختياري تمامًا)
   if (!session) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="font-display text-2xl font-bold text-forest-deep">حسابك</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          سجّل دخولك بجوجل عشان تحفظ عناوينك، تشوف سجل طلباتك، وتعيد أي طلب بضغطة واحدة.
-          التسجيل اختياري تمامًا، وتقدر تكمل تطلب كضيف من غيره في أي وقت.
-        </p>
-        <button
-          onClick={signInWithGoogle}
-          className="mx-auto mt-6 flex items-center gap-2 rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream hover:bg-forest-deep"
-        >
-          <LogIn className="h-4 w-4" /> تسجيل الدخول بجوجل
-        </button>
-      </div>
-    );
+    return <AuthGate />;
   }
 
   return (

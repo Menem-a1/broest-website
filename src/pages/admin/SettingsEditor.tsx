@@ -5,6 +5,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
+import { OrderingPauseControl } from "@/components/admin/OrderingPauseControl";
+import { FooterSettingsControl } from "@/components/admin/FooterSettingsControl";
 import { Loader2, Save, Check, CreditCard } from "lucide-react";
 
 type Settings = {
@@ -93,6 +95,14 @@ export function SettingsEditor() {
       <p className="mt-1 text-sm text-muted-foreground">
         الحقول دي بتظهر في كل الموقع (الهيدر، الفوتر، زرار الواتساب، إلخ)
       </p>
+
+      <div className="mt-6">
+        <OrderingPauseControl />
+      </div>
+
+      <div className="mt-6">
+        <FooterSettingsControl />
+      </div>
 
       <div className="mt-6 grid gap-6 sm:grid-cols-2">
         <div>

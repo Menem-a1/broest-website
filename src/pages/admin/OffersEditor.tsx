@@ -6,7 +6,7 @@
 // =====================================================
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Trash2, Plus, Save, Loader2, EyeOff, Eye, Check, Percent, Tag } from "lucide-react";
+import { Trash2, Plus, Save, Loader2, EyeOff, Eye, Check, Percent } from "lucide-react";
 
 type DbOffer = {
   id: string;
@@ -15,7 +15,6 @@ type DbOffer = {
   description_ar: string;
   discount_type: "percentage" | "fixed_amount";
   discount_value: number;
-  coupon_code: string | null;
   is_visible: boolean;
 };
 
@@ -25,7 +24,6 @@ const EMPTY_OFFER = {
   description_ar: "",
   discount_type: "percentage" as const,
   discount_value: 10,
-  coupon_code: "",
   is_visible: true,
 };
 
@@ -81,7 +79,6 @@ export function OffersEditor() {
         description_ar: offer.description_ar,
         discount_type: offer.discount_type,
         discount_value: offer.discount_value,
-        coupon_code: offer.coupon_code || null,
         is_visible: offer.is_visible,
       })
       .eq("id", offer.id);
@@ -129,7 +126,7 @@ export function OffersEditor() {
         <div>
           <h1 className="font-display text-2xl font-bold text-forest-deep">العروض</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            عروض وكوبونات خصم تظهر للعميل في صفحة "العروض" على الموقع
+            عروض تظهر للعميل في صفحة "العروض" على الموقع
           </p>
         </div>
         <button
@@ -181,7 +178,7 @@ export function OffersEditor() {
             }`}
           >
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
+              <div className="md:col-span-2">
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">
                   عنوان العرض
                 </label>
@@ -189,19 +186,6 @@ export function OffersEditor() {
                   value={offer.title_ar}
                   onChange={(e) => updateLocal(offer.id, { title_ar: e.target.value })}
                   className="w-full rounded-lg border border-forest/15 px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <Tag className="h-3.5 w-3.5" /> كود الكوبون (اختياري)
-                </label>
-                <input
-                  value={offer.coupon_code || ""}
-                  onChange={(e) => updateLocal(offer.id, { coupon_code: e.target.value })}
-                  className="w-full rounded-lg border border-forest/15 px-3 py-2 text-sm"
-                  dir="ltr"
-                  placeholder="مثال: BROST20"
                 />
               </div>
 

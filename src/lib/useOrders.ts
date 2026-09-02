@@ -50,7 +50,7 @@ export async function saveOrder(
   customer: CustomerInfo,
   paymentMethod: PaymentMethod = "cash",
   fulfillment: FulfillmentInfo,
-  extras?: { couponCode?: string; discountAmount?: number; customerUserId?: string }
+  extras?: { customerUserId?: string }
 ) {
   const items = lines.map((l) => ({
     nameAr: l.nameAr,
@@ -60,7 +60,7 @@ export async function saveOrder(
   }));
 
   const deliveryPrice = fulfillment.type === "delivery" ? fulfillment.deliveryPrice : 0;
-  const finalTotal = totalPrice + deliveryPrice - (extras?.discountAmount ?? 0);
+  const finalTotal = totalPrice + deliveryPrice;
 
   const { data, error } = await supabase
     .from("orders")
@@ -78,8 +78,6 @@ export async function saveOrder(
       delivery_price: deliveryPrice,
       pickup_branch_id: fulfillment.type === "pickup" ? fulfillment.branchId : null,
       payment_method: paymentMethod,
-      applied_coupon_code: extras?.couponCode || null,
-      discount_amount: extras?.discountAmount ?? 0,
       customer_user_id: extras?.customerUserId || null,
       // الكاش بيتحسب "لسه مدفوعش" لحد ما يوصل ويتحصّل، والدفع الإلكتروني
       // هيتحدّث لـ "paid" بعد نجاح المعاملة فعليًا من بوابة الدفع
@@ -89,9 +87,8 @@ export async function saveOrder(
     .single();
 
   if (error) {
-    // مش هنمنع العميل من إكمال الطلب لو فشل التسجيل، بس بنسجل الخطأ
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
-    return { success: false, orderId: null, displayNumber: null };
+    return { success: false, orderId: null, displayNumber: null, errorMessage: error.message };
   }
   return { success: true, orderId: data?.id ?? null, displayNumber: data?.display_number ?? null };
 }

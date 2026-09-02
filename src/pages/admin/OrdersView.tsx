@@ -22,11 +22,23 @@ import {
   Hash,
 } from "lucide-react";
 
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  new: "bg-fire/15 text-fire",
-  preparing: "bg-blue-100 text-blue-700",
-  done: "bg-emerald-100 text-emerald-700",
-  cancelled: "bg-chili/15 text-chili",
+const STATUS_STYLES: Record<OrderStatus, { active: string; idle: string }> = {
+  new: {
+    active: "bg-fire text-white border-fire",
+    idle: "bg-white text-fire border-fire/40",
+  },
+  preparing: {
+    active: "bg-blue-600 text-white border-blue-600",
+    idle: "bg-white text-blue-600 border-blue-300",
+  },
+  done: {
+    active: "bg-emerald-600 text-white border-emerald-600",
+    idle: "bg-white text-emerald-700 border-emerald-300",
+  },
+  cancelled: {
+    active: "bg-chili text-white border-chili",
+    idle: "bg-white text-chili border-chili/40",
+  },
 };
 
 const STATUS_OPTIONS: OrderStatus[] = ["new", "preparing", "done", "cancelled"];
@@ -168,30 +180,33 @@ export function OrdersView() {
               key={order.id}
               className="rounded-xl border border-forest/10 bg-white p-4"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-3">
-                  {order.displayNumber && (
-                    <span className="flex items-center gap-1 rounded-full bg-forest/10 px-2.5 py-1 text-xs font-bold text-forest-deep">
-                      <Hash className="h-3 w-3" /> {order.displayNumber}
-                    </span>
-                  )}
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    {formatTime(order.createdAt)}
-                  </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {order.displayNumber && (
+                  <span className="flex items-center gap-1 rounded-full bg-forest/10 px-2.5 py-1 text-xs font-bold text-forest-deep">
+                    <Hash className="h-3 w-3" /> {order.displayNumber}
+                  </span>
+                )}
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  {formatTime(order.createdAt)}
                 </div>
+              </div>
 
-                <select
-                  value={order.status}
-                  onChange={(e) => updateStatus(order.id, e.target.value as OrderStatus)}
-                  className={`rounded-full border-0 px-3 py-1 text-xs font-semibold ${STATUS_COLORS[order.status]}`}
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {STATUS_OPTIONS.map((s) => {
+                  const isActive = order.status === s;
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => updateStatus(order.id, s)}
+                      className={`rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-colors ${
+                        isActive ? STATUS_STYLES[s].active : STATUS_STYLES[s].idle
+                      }`}
+                    >
                       {statusLabel(s)}
-                    </option>
-                  ))}
-                </select>
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="mt-3 flex flex-col gap-1.5 rounded-lg bg-muted/50 p-3 text-sm">

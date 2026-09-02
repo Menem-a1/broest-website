@@ -1,7 +1,8 @@
 import { useSettings } from "@/lib/useSettings";
 import { useBranches, formatHoursAr } from "@/lib/useBranches";
+import { useFooterSettings } from "@/lib/useFooterSettings";
 import { Link } from "react-router-dom";
-import { Phone, MapPin, Clock, Camera, Share2 } from "lucide-react";
+import { Phone, MapPin, Clock, Globe, Image as ImageIcon, MessageCircle } from "lucide-react";
 
 // دي قيم تسويقية بسيطة مش محتاجة تتعدل باستمرار، فسايبينها هنا
 // (لو حبيت تضيفها للوحة التحكم بعدين، سهل تتنقل لجدول restaurant_settings)
@@ -12,7 +13,14 @@ const RATING_COUNT = 930;
 export function SiteFooter() {
   const { settings } = useSettings();
   const { branches } = useBranches();
+  const { settings: footer } = useFooterSettings();
   const primaryBranch = branches[0];
+
+  const socialLinks = [
+    { url: footer.facebookUrl, icon: Globe, label: "فيسبوك" },
+    { url: footer.instagramUrl, icon: ImageIcon, label: "إنستجرام" },
+    { url: footer.whatsappUrl, icon: MessageCircle, label: "واتساب" },
+  ].filter((s) => s.url.trim() !== "");
 
   return (
     <footer className="bg-forest-deep px-4 pb-28 pt-12 text-cream/80 md:px-8 md:pb-12">
@@ -22,20 +30,22 @@ export function SiteFooter() {
           <p className="mt-2 max-w-xs text-sm leading-relaxed text-cream/60">
             {TAGLINE_AR}
           </p>
-          <div className="mt-4 flex gap-3">
-            <a
-              href="#"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/10 transition-colors hover:bg-fire hover:text-forest-deep"
-            >
-              <Camera className="h-4 w-4" />
-            </a>
-            <a
-              href="#"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/10 transition-colors hover:bg-fire hover:text-forest-deep"
-            >
-              <Share2 className="h-4 w-4" />
-            </a>
-          </div>
+          {socialLinks.length > 0 && (
+            <div className="mt-4 flex gap-3">
+              {socialLinks.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/10 transition-colors hover:bg-fire hover:text-forest-deep"
+                >
+                  <s.icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -88,6 +98,26 @@ export function SiteFooter() {
       <div className="mx-auto mt-10 max-w-6xl border-t border-cream/10 pt-6 text-center text-xs text-cream/40">
         © {new Date().getFullYear()} {settings.nameAr} — كل الحقوق محفوظة
       </div>
+
+      {footer.designerShowName && footer.designerName && (
+        <div
+          className="mx-auto mt-2 max-w-6xl text-center text-cream/40"
+          style={{ fontSize: `${footer.designerFontSize}px`, opacity: footer.designerOpacity }}
+        >
+          {footer.designerShowContact && footer.designerContactUrl ? (
+            <a
+              href={footer.designerContactUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              {footer.designerName} — تواصل
+            </a>
+          ) : (
+            <span>{footer.designerName}</span>
+          )}
+        </div>
+      )}
     </footer>
   );
 }

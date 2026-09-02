@@ -4,19 +4,11 @@
 // الصفحة دي بتتظهر أو تتخفي بالكامل من إعداد المطور
 // (offers_page_settings.is_page_enabled)
 // =====================================================
-import { Loader2, Percent, Tag, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Percent } from "lucide-react";
 import { useOffers } from "@/lib/useOffers";
 
 export function Offers() {
   const { offers, loading } = useOffers();
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-
-  function copyCoupon(code: string) {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 1500);
-  }
 
   return (
     <div>
@@ -76,22 +68,6 @@ export function Offers() {
                       ? `خصم ${offer.discountValue}%`
                       : `خصم ${offer.discountValue} ج.م`}
                   </p>
-
-                  {offer.couponCode && (
-                    <button
-                      onClick={() => copyCoupon(offer.couponCode!)}
-                      className="mt-auto flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-forest/20 px-3 py-2.5 font-price text-sm font-bold text-forest-deep transition-colors hover:border-fire"
-                      dir="ltr"
-                    >
-                      <Tag className="h-4 w-4" />
-                      {offer.couponCode}
-                      {copiedCode === offer.couponCode ? (
-                        <Check className="h-4 w-4 text-emerald-600" />
-                      ) : (
-                        <Copy className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </button>
-                  )}
                 </div>
               </div>
             ))}

@@ -4,6 +4,9 @@ import { useCart } from "@/context/CartContext";
 import { useCustomerAuth } from "@/context/CustomerAuthContext";
 import { useBranches, isBranchOpenNow } from "@/lib/useBranches";
 import { useDeliveryZones } from "@/lib/useDeliveryZones";
+import { useOrderingStatus } from "@/lib/useOrderingStatus";
+import { useCustomerAddresses } from "@/lib/useCustomerAddresses";
+import { useNavigate } from "react-router-dom";
 import { usePaymentSettings } from "@/lib/payment/usePaymentSettings";
 import {
   Minus,
@@ -32,6 +35,10 @@ export function CartDrawer() {
   const { session } = useCustomerAuth();
   const { branches } = useBranches();
   const { zones } = useDeliveryZones();
+  const { isPaused: orderingPaused, message: pausedMessage } = useOrderingStatus();
+  const { addresses: savedAddresses } = useCustomerAddresses(session?.user?.id);
+  const [showSavedAddresses, setShowSavedAddresses] = useState(false);
+  const navigate = useNavigate();
   const { settings: paymentSettings } = usePaymentSettings();
 
   const [step, setStep] = useState<Step>("cart");
@@ -74,6 +81,11 @@ export function CartDrawer() {
     setFormError(null);
 
     // فحص أخير قبل إرسال الطلب فعليًا، حتى لو العميل فتح السلة قبل وقت القفل
+    if (orderingPaused) {
+      setFormError(pausedMessage);
+      return;
+    }
+
     if (!isOpen) {
       setFormError("المطعم مقفول دلوقتي، جرب تطلب في مواعيد العمل");
       return;
@@ -98,10 +110,17 @@ export function CartDrawer() {
       return;
     }
 
-    const fulfillment: FulfillmentInfo =
-      fulfillmentType === "delivery"
+    const fulfillment: FulfillmentInfo | null =
+      fulfillmentType === "delivery" && selectedZoneId
         ? { type: "delivery", zoneId: selectedZoneId, deliveryPrice }
-        : { type: "pickup", branchId: selectedPickupBranchId };
+        : fulfillmentType === "pickup" && selectedPickupBranchId
+        ? { type: "pickup", branchId: selectedPickupBranchId }
+        : null;
+
+    if (!fulfillment) {
+      setFormError("من فضلك أكمل بيانات الاستلام");
+      return;
+    }
 
     setSubmitting(true);
     const result = await saveOrder(
@@ -124,7 +143,7 @@ export function CartDrawer() {
       setStep("success");
       clearCart();
     } else {
-      setFormError("حصلت مشكلة في إرسال الطلب، حاول تاني");
+      setFormError(result.errorMessage || "حصلت مشكلة في إرسال الطلب، حاول تاني");
     }
   }
 
@@ -217,9 +236,14 @@ export function CartDrawer() {
                       المطعم مقفول دلوقتي، مينفعش تأكيد الطلب
                     </p>
                   )}
+                  {orderingPaused && (
+                    <p className="mb-2 text-center text-xs font-semibold text-chili">
+                      {pausedMessage}
+                    </p>
+                  )}
                   <button
                     onClick={() => setStep("checkout")}
-                    disabled={!isOpen}
+                    disabled={!isOpen || orderingPaused}
                     className="w-full rounded-full bg-fire py-3 font-display text-sm font-bold text-forest-deep transition-transform hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
                   >
                     تأكيد الطلب
@@ -332,9 +356,18 @@ export function CartDrawer() {
                     </div>
 
                     <div>
-                      <label className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-forest-deep">
-                        <MapPin className="h-3.5 w-3.5" /> العنوان بالتفصيل
-                      </label>
+                      <div className="mb-1 flex items-center justify-between">
+                        <label className="flex items-center gap-1.5 text-sm font-semibold text-forest-deep">
+                          <MapPin className="h-3.5 w-3.5" /> العنوان بالتفصيل
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowSavedAddresses(true)}
+                          className="text-xs font-semibold text-fire hover:underline"
+                        >
+                          عناويني المحفوظة
+                        </button>
+                      </div>
                       <textarea
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
@@ -482,6 +515,106 @@ export function CartDrawer() {
           </div>
         )}
       </SheetContent>
+
+      {showSavedAddresses && (
+        <SavedAddressesModal
+          isLoggedIn={!!session}
+          addresses={savedAddresses}
+          onSelect={(zoneId, detail) => {
+            setSelectedZoneId(zoneId);
+            setAddress(detail);
+            setShowSavedAddresses(false);
+          }}
+          onClose={() => setShowSavedAddresses(false)}
+          onGoToSignup={() => {
+            setShowSavedAddresses(false);
+            setCartOpen(false);
+            navigate("/account");
+          }}
+        />
+      )}
     </Sheet>
+  );
+}
+
+// ===== نافذة اختيار عنوان محفوظ، أو دعوة لتسجيل الدخول لو مسجلش =====
+function SavedAddressesModal({
+  isLoggedIn,
+  addresses,
+  onSelect,
+  onClose,
+  onGoToSignup,
+}: {
+  isLoggedIn: boolean;
+  addresses: { id: string; label: string; deliveryZoneId: string | null; addressDetail: string }[];
+  onSelect: (zoneId: string, detail: string) => void;
+  onClose: () => void;
+  onGoToSignup: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-sm rounded-xl bg-white p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {!isLoggedIn ? (
+          <div className="text-center">
+            <h3 className="font-display text-lg font-bold text-forest-deep">
+              محتاج تسجل دخول الأول
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              العناوين المحفوظة بتتطلب حساب، عايز تسجل دلوقتي؟
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={onGoToSignup}
+                className="flex-1 rounded-full bg-forest py-2.5 text-sm font-bold text-cream"
+              >
+                تسجيل / دخول
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 rounded-full border border-forest/20 py-2.5 text-sm font-bold text-forest-deep"
+              >
+                لأ، شكرًا
+              </button>
+            </div>
+          </div>
+        ) : addresses.length === 0 ? (
+          <div className="text-center">
+            <h3 className="font-display text-lg font-bold text-forest-deep">
+              لسه مفيش عناوين محفوظة
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              تقدر تضيف عنوان من صفحة "حسابك" بعد ما تخلص الطلب ده
+            </p>
+            <button
+              onClick={onClose}
+              className="mt-4 rounded-full bg-forest px-6 py-2.5 text-sm font-bold text-cream"
+            >
+              تمام
+            </button>
+          </div>
+        ) : (
+          <div>
+            <h3 className="mb-3 font-display text-lg font-bold text-forest-deep">
+              عناويني المحفوظة
+            </h3>
+            <div className="flex flex-col gap-2">
+              {addresses.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => onSelect(a.deliveryZoneId || "", a.addressDetail)}
+                  className="rounded-lg border border-forest/15 p-3 text-right hover:border-fire"
+                >
+                  <p className="text-sm font-bold text-forest-deep">{a.label}</p>
+                  <p className="text-xs text-muted-foreground">{a.addressDetail}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -13,7 +13,7 @@ export type CartLine = {
 
 type CartContextType = {
   lines: CartLine[];
-  addItem: (item: MenuItem, size?: { label: string; price: number }) => void;
+  addItem: (item: MenuItem, size?: { label: string; price: number }, priceOverride?: number) => void;
   addRawLine: (line: { itemId: string; nameAr: string; size?: string; unitPrice: number; qty: number }) => void;
   removeLine: (key: string) => void;
   changeQty: (key: string, delta: number) => void;
@@ -30,9 +30,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [isCartOpen, setCartOpen] = useState(false);
 
-  const addItem = (item: MenuItem, size?: { label: string; price: number }) => {
+  const addItem = (
+    item: MenuItem,
+    size?: { label: string; price: number },
+    priceOverride?: number
+  ) => {
     const key = size ? `${item.id}-${size.label}` : item.id;
-    const unitPrice = size ? size.price : item.price;
+    const unitPrice = priceOverride ?? (size ? size.price : item.price);
     setLines((prev) => {
       const existing = prev.find((l) => l.key === key);
       if (existing) {

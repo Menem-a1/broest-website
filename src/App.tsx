@@ -26,6 +26,7 @@ import { ReviewsEditor } from "@/pages/admin/ReviewsEditor";
 import { BranchesEditor } from "@/pages/admin/BranchesEditor";
 import { DeliveryZonesEditor } from "@/pages/admin/DeliveryZonesEditor";
 import { OffersEditor } from "@/pages/admin/OffersEditor";
+import { DiscountsEditor } from "@/pages/admin/DiscountsEditor";
 import { InactiveCustomers } from "@/pages/admin/InactiveCustomers";
 import { UsersEditor } from "@/pages/admin/UsersEditor";
 
@@ -123,6 +124,14 @@ function App() {
                 element={
                   <RequireDeveloper>
                     <OffersEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="discounts"
+                element={
+                  <RequireDeveloper>
+                    <DiscountsEditor />
                   </RequireDeveloper>
                 }
               />

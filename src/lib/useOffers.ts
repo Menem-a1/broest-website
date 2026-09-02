@@ -14,7 +14,6 @@ export type Offer = {
   imageUrl: string | null;
   discountType: "percentage" | "fixed_amount";
   discountValue: number;
-  couponCode: string | null;
 };
 
 export function useOffers() {
@@ -47,7 +46,6 @@ export function useOffers() {
             imageUrl: o.image_url || null,
             discountType: o.discount_type,
             discountValue: Number(o.discount_value),
-            couponCode: o.coupon_code || null,
           }))
         );
       }

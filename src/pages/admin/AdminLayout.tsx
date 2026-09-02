@@ -9,13 +9,16 @@ import { useOrders } from "@/lib/useOrders";
 import { useOrderNotification } from "@/lib/useOrderNotification";
 import { useTabTitleAlert } from "@/lib/useTabTitleAlert";
 import { AdminErrorBoundary } from "@/pages/admin/AdminErrorBoundary";
-import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2, Users } from "lucide-react";
+import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2, Users, Truck, Percent, UserX } from "lucide-react";
 
 const navItems = [
   { to: "/admin", label: "الرئيسية", icon: LayoutGrid, end: true, developerOnly: false },
   { to: "/admin/orders", label: "الطلبات", icon: ClipboardList, developerOnly: false },
   { to: "/admin/menu", label: "المنيو والأسعار", icon: UtensilsCrossed, developerOnly: true },
   { to: "/admin/branches", label: "الفروع", icon: Building2, developerOnly: true },
+  { to: "/admin/delivery-zones", label: "مناطق التوصيل", icon: Truck, developerOnly: true },
+  { to: "/admin/offers", label: "العروض", icon: Percent, developerOnly: true },
+  { to: "/admin/inactive-customers", label: "العملاء الغائبين", icon: UserX, developerOnly: true },
   { to: "/admin/home", label: "الصفحة الرئيسية", icon: Image, developerOnly: true },
   { to: "/admin/reviews", label: "المراجعات", icon: MessageSquareText, developerOnly: true },
   { to: "/admin/settings", label: "إعدادات المطعم", icon: Settings, developerOnly: true },

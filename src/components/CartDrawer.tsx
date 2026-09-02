@@ -1,30 +1,61 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 import { useBranches, isBranchOpenNow } from "@/lib/useBranches";
+import { useDeliveryZones } from "@/lib/useDeliveryZones";
 import { usePaymentSettings } from "@/lib/payment/usePaymentSettings";
-import { Minus, Plus, Trash2, CheckCircle2, Loader2, User, Phone, MapPin, Banknote, CreditCard } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  Loader2,
+  User,
+  Phone,
+  MapPin,
+  Banknote,
+  CreditCard,
+  Truck,
+  Store,
+} from "lucide-react";
 import { saveOrder } from "@/lib/useOrders";
+import type { FulfillmentInfo } from "@/lib/useOrders";
 import type { PaymentMethod } from "@/lib/payment/types";
 
 type Step = "cart" | "checkout" | "success";
+type FulfillmentChoice = "delivery" | "pickup";
 
 export function CartDrawer() {
   const { lines, changeQty, removeLine, totalPrice, isCartOpen, setCartOpen, clearCart } =
     useCart();
+  const { session } = useCustomerAuth();
   const { branches } = useBranches();
+  const { zones } = useDeliveryZones();
   const { settings: paymentSettings } = usePaymentSettings();
 
   const [step, setStep] = useState<Step>("cart");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [phone2, setPhone2] = useState("");
   const [address, setAddress] = useState("");
+  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentChoice>("delivery");
+  const [selectedZoneId, setSelectedZoneId] = useState<string>("");
+  const [selectedPickupBranchId, setSelectedPickupBranchId] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [displayNumber, setDisplayNumber] = useState<number | null>(null);
 
   const primaryBranch = branches[0];
   const isOpen = primaryBranch ? isBranchOpenNow(primaryBranch.opensAt, primaryBranch.closesAt) : true;
+
+  const selectedZone = useMemo(
+    () => zones.find((z) => z.id === selectedZoneId) || null,
+    [zones, selectedZoneId]
+  );
+  const deliveryPrice = fulfillmentType === "delivery" ? (selectedZone?.deliveryPrice ?? 0) : 0;
+  const grandTotal = totalPrice + deliveryPrice;
 
   // لما المستخدم يقفل السلة، نرجّعها لأول خطوة استعدادًا للمرة الجاية
   function handleOpenChange(open: boolean) {
@@ -48,10 +79,29 @@ export function CartDrawer() {
       return;
     }
 
-    if (!name.trim() || !phone.trim() || !address.trim()) {
-      setFormError("من فضلك املأ كل الحقول");
+    if (!name.trim() || !phone.trim()) {
+      setFormError("من فضلك املأ الاسم ورقم التليفون");
       return;
     }
+
+    if (fulfillmentType === "delivery") {
+      if (!selectedZoneId) {
+        setFormError("من فضلك اختار منطقتك");
+        return;
+      }
+      if (!address.trim()) {
+        setFormError("من فضلك اكتب عنوانك بالتفصيل");
+        return;
+      }
+    } else if (fulfillmentType === "pickup" && !selectedPickupBranchId) {
+      setFormError("من فضلك اختار الفرع اللي هتستلم منه");
+      return;
+    }
+
+    const fulfillment: FulfillmentInfo =
+      fulfillmentType === "delivery"
+        ? { type: "delivery", zoneId: selectedZoneId, deliveryPrice }
+        : { type: "pickup", branchId: selectedPickupBranchId };
 
     setSubmitting(true);
     const result = await saveOrder(
@@ -60,21 +110,21 @@ export function CartDrawer() {
       {
         name: name.trim(),
         phone: phone.trim(),
-        address: address.trim(),
+        phone2: phone2.trim(),
+        address: fulfillmentType === "delivery" ? address.trim() : "",
       },
-      paymentMethod
+      paymentMethod,
+      fulfillment,
+      { customerUserId: session?.user?.id }
     );
     setSubmitting(false);
 
     if (result.success) {
+      setDisplayNumber(result.displayNumber);
       setStep("success");
       clearCart();
     } else {
-      setFormError(
-        result.errorMessage
-          ? `حصلت مشكلة في إرسال الطلب: ${result.errorMessage}`
-          : "حصلت مشكلة في إرسال الطلب، حاول تاني"
-      );
+      setFormError("حصلت مشكلة في إرسال الطلب، حاول تاني");
     }
   }
 
@@ -159,6 +209,9 @@ export function CartDrawer() {
                       {totalPrice} ج.م
                     </span>
                   </div>
+                  <p className="mb-2 text-center text-xs text-muted-foreground">
+                    سعر التوصيل بيتحسب في الخطوة الجاية حسب منطقتك
+                  </p>
                   {!isOpen && (
                     <p className="mb-2 text-center text-xs font-semibold text-chili">
                       المطعم مقفول دلوقتي، مينفعش تأكيد الطلب
@@ -214,16 +267,104 @@ export function CartDrawer() {
 
                 <div>
                   <label className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-forest-deep">
-                    <MapPin className="h-3.5 w-3.5" /> العنوان بالتفصيل
+                    <Phone className="h-3.5 w-3.5" /> رقم تليفون تاني (اختياري)
                   </label>
-                  <textarea
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    rows={3}
-                    className="w-full resize-none rounded-lg border border-forest/20 bg-white px-3 py-2.5 text-sm"
-                    placeholder="المنطقة، الشارع، وأي علامة مميزة تساعدنا نوصلك"
+                  <input
+                    value={phone2}
+                    onChange={(e) => setPhone2(e.target.value)}
+                    type="tel"
+                    className="w-full rounded-lg border border-forest/20 bg-white px-3 py-2.5 text-sm"
+                    placeholder="01xxxxxxxxx (لو حابب تسيب رقم احتياطي)"
+                    dir="ltr"
                   />
                 </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-forest-deep">
+                    استلام الطلب
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFulfillmentType("delivery")}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-3 text-sm font-semibold transition-colors ${
+                        fulfillmentType === "delivery"
+                          ? "border-fire bg-fire/5 text-forest-deep"
+                          : "border-forest/15 text-muted-foreground hover:border-forest/30"
+                      }`}
+                    >
+                      <Truck className="h-5 w-5" />
+                      توصيل
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFulfillmentType("pickup")}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-3 text-sm font-semibold transition-colors ${
+                        fulfillmentType === "pickup"
+                          ? "border-fire bg-fire/5 text-forest-deep"
+                          : "border-forest/15 text-muted-foreground hover:border-forest/30"
+                      }`}
+                    >
+                      <Store className="h-5 w-5" />
+                      استلام من الفرع
+                    </button>
+                  </div>
+                </div>
+
+                {fulfillmentType === "delivery" && (
+                  <>
+                    <div>
+                      <label className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-forest-deep">
+                        <MapPin className="h-3.5 w-3.5" /> منطقتك
+                      </label>
+                      <select
+                        value={selectedZoneId}
+                        onChange={(e) => setSelectedZoneId(e.target.value)}
+                        className="w-full rounded-lg border border-forest/20 bg-white px-3 py-2.5 text-sm"
+                      >
+                        <option value="">اختار المنطقة</option>
+                        {zones.map((z) => (
+                          <option key={z.id} value={z.id}>
+                            {z.nameAr} — توصيل {z.deliveryPrice} ج.م
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-forest-deep">
+                        <MapPin className="h-3.5 w-3.5" /> العنوان بالتفصيل
+                      </label>
+                      <textarea
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        rows={3}
+                        className="w-full resize-none rounded-lg border border-forest/20 bg-white px-3 py-2.5 text-sm"
+                        placeholder="الشارع، رقم العمارة والدور، وأي علامة مميزة تساعدنا نوصلك"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {fulfillmentType === "pickup" && (
+                  <div>
+                    <label className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-forest-deep">
+                      <Store className="h-3.5 w-3.5" /> الفرع
+                    </label>
+                    <select
+                      value={selectedPickupBranchId}
+                      onChange={(e) => setSelectedPickupBranchId(e.target.value)}
+                      className="w-full rounded-lg border border-forest/20 bg-white px-3 py-2.5 text-sm"
+                    >
+                      <option value="">اختار الفرع</option>
+                      {branches.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.nameAr}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-forest-deep">
@@ -272,11 +413,21 @@ export function CartDrawer() {
             </div>
 
             <div className="border-t border-forest/10 bg-white px-5 py-4">
+              <div className="mb-1 flex items-center justify-between text-sm text-muted-foreground">
+                <span>سعر الأصناف</span>
+                <span className="font-price">{totalPrice} ج.م</span>
+              </div>
+              {fulfillmentType === "delivery" && (
+                <div className="mb-1 flex items-center justify-between text-sm text-muted-foreground">
+                  <span>سعر التوصيل</span>
+                  <span className="font-price">{deliveryPrice} ج.م</span>
+                </div>
+              )}
               <div className="mb-3 flex items-center justify-between">
                 <span className="font-display text-base font-semibold text-forest-deep">
                   الإجمالي
                 </span>
-                <span className="font-price text-xl font-bold text-fire">{totalPrice} ج.م</span>
+                <span className="font-price text-xl font-bold text-fire">{grandTotal} ج.م</span>
               </div>
               <div className="flex gap-2">
                 <button
@@ -311,6 +462,11 @@ export function CartDrawer() {
             <h3 className="font-display text-xl font-bold text-forest-deep">
               تم استلام طلبك بنجاح!
             </h3>
+            {displayNumber && (
+              <p className="font-price text-lg font-bold text-fire">
+                رقم طلبك: #{displayNumber}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               {paymentMethod === "cash"
                 ? "هنجهزه ونوصله لك في أقرب وقت، وتدفع كاش عند الاستلام."

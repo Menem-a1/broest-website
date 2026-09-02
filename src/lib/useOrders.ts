@@ -9,8 +9,11 @@ import type { PaymentMethod, PaymentStatus } from "@/lib/payment/types";
 
 export type OrderStatus = "new" | "preparing" | "done" | "cancelled";
 
+export type FulfillmentType = "delivery" | "pickup";
+
 export type Order = {
   id: string;
+  displayNumber: number | null;
   createdAt: string;
   status: OrderStatus;
   items: { nameAr: string; size?: string; qty: number; unitPrice: number }[];
@@ -18,7 +21,12 @@ export type Order = {
   orderChannel: string;
   customerName: string;
   customerPhone: string;
+  customerPhone2: string;
   customerAddress: string;
+  fulfillmentType: FulfillmentType;
+  deliveryZoneId: string | null;
+  deliveryPrice: number;
+  pickupBranchId: string | null;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
 };
@@ -26,8 +34,13 @@ export type Order = {
 export type CustomerInfo = {
   name: string;
   phone: string;
+  phone2?: string;
   address: string;
 };
+
+export type FulfillmentInfo =
+  | { type: "delivery"; zoneId: string; deliveryPrice: number }
+  | { type: "pickup"; branchId: string };
 
 // بتتنادى من صفحة السلة لما العميل يأكد الطلب
 // بتسجل الطلب في قاعدة البيانات عشان يظهر في لوحة التحكم
@@ -35,7 +48,9 @@ export async function saveOrder(
   lines: CartLine[],
   totalPrice: number,
   customer: CustomerInfo,
-  paymentMethod: PaymentMethod = "cash"
+  paymentMethod: PaymentMethod = "cash",
+  fulfillment: FulfillmentInfo,
+  extras?: { couponCode?: string; discountAmount?: number; customerUserId?: string }
 ) {
   const items = lines.map((l) => ({
     nameAr: l.nameAr,
@@ -44,40 +59,41 @@ export async function saveOrder(
     unitPrice: l.unitPrice,
   }));
 
-  // ناخد رقم الطلب الأونلاين الجاي قبل ما نسجل الطلب، عشان يتحفظ معاه
-  const { data: orderNumberData, error: numberError } = await supabase.rpc(
-    "get_next_online_order_number"
-  );
-  if (numberError) {
-    console.error("خطأ في جلب رقم الطلب:", numberError);
-  }
+  const deliveryPrice = fulfillment.type === "delivery" ? fulfillment.deliveryPrice : 0;
+  const finalTotal = totalPrice + deliveryPrice - (extras?.discountAmount ?? 0);
 
   const { data, error } = await supabase
     .from("orders")
     .insert({
       items,
-      total_price: totalPrice,
+      total_price: finalTotal,
       order_channel: "website",
       status: "new",
       customer_name: customer.name,
       customer_phone: customer.phone,
+      customer_phone_2: customer.phone2 || "",
       customer_address: customer.address,
+      fulfillment_type: fulfillment.type,
+      delivery_zone_id: fulfillment.type === "delivery" ? fulfillment.zoneId : null,
+      delivery_price: deliveryPrice,
+      pickup_branch_id: fulfillment.type === "pickup" ? fulfillment.branchId : null,
       payment_method: paymentMethod,
-      online_order_number: orderNumberData ?? null,
+      applied_coupon_code: extras?.couponCode || null,
+      discount_amount: extras?.discountAmount ?? 0,
+      customer_user_id: extras?.customerUserId || null,
       // الكاش بيتحسب "لسه مدفوعش" لحد ما يوصل ويتحصّل، والدفع الإلكتروني
       // هيتحدّث لـ "paid" بعد نجاح المعاملة فعليًا من بوابة الدفع
       payment_status: "pending",
     })
-    .select("id")
+    .select("id, display_number")
     .single();
 
   if (error) {
-    // مش هنمنع العميل من إكمال الطلب لو فشل التسجيل، بس بنسجل الخطأ ونرجعه
-    // عشان يبان لصاحب الموقع إيه السبب بالظبط (مش رسالة عامة)
+    // مش هنمنع العميل من إكمال الطلب لو فشل التسجيل، بس بنسجل الخطأ
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
-    return { success: false, orderId: null, errorMessage: error.message };
+    return { success: false, orderId: null, displayNumber: null };
   }
-  return { success: true, orderId: data?.id ?? null, errorMessage: null };
+  return { success: true, orderId: data?.id ?? null, displayNumber: data?.display_number ?? null };
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -115,6 +131,7 @@ export function useOrders() {
       setOrders(
         data.map((o) => ({
           id: o.id,
+          displayNumber: o.display_number ?? null,
           createdAt: o.created_at,
           status: o.status,
           items: Array.isArray(o.items) ? o.items : [],
@@ -122,7 +139,12 @@ export function useOrders() {
           orderChannel: o.order_channel,
           customerName: o.customer_name || "",
           customerPhone: o.customer_phone || "",
+          customerPhone2: o.customer_phone_2 || "",
           customerAddress: o.customer_address || "",
+          fulfillmentType: (o.fulfillment_type || "delivery") as FulfillmentType,
+          deliveryZoneId: o.delivery_zone_id || null,
+          deliveryPrice: Number(o.delivery_price || 0),
+          pickupBranchId: o.pickup_branch_id || null,
           paymentMethod: (o.payment_method || "cash") as PaymentMethod,
           paymentStatus: (o.payment_status || "pending") as PaymentStatus,
         }))

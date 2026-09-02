@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { CustomerAuthProvider } from "@/context/CustomerAuthContext";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -9,6 +10,8 @@ import { useSettings } from "@/lib/useSettings";
 import { useFavicon } from "@/lib/useFavicon";
 import { Home } from "@/pages/Home";
 import { Menu } from "@/pages/Menu";
+import { Offers } from "@/pages/Offers";
+import { Account } from "@/pages/Account";
 import { About } from "@/pages/About";
 import { Contact } from "@/pages/Contact";
 import { Login } from "@/pages/admin/Login";
@@ -21,28 +24,37 @@ import { OrdersView } from "@/pages/admin/OrdersView";
 import { HomeEditor } from "@/pages/admin/HomeEditor";
 import { ReviewsEditor } from "@/pages/admin/ReviewsEditor";
 import { BranchesEditor } from "@/pages/admin/BranchesEditor";
+import { DeliveryZonesEditor } from "@/pages/admin/DeliveryZonesEditor";
+import { OffersEditor } from "@/pages/admin/OffersEditor";
+import { InactiveCustomers } from "@/pages/admin/InactiveCustomers";
 import { UsersEditor } from "@/pages/admin/UsersEditor";
 
 // الموقع العام (اللي بيشوفه العملاء): هيدر + فوتر + سلة + شريط الطلب
+// CustomerAuthProvider بيلف الموقع العام بس، عشان دخول العميل بجوجل
+// يفضل منفصل تمامًا عن دخول الأدمن (AuthProvider) اللي بيغطي /admin بس
 function PublicSite() {
   const { settings } = useSettings();
   useFavicon(settings.faviconUrl);
 
   return (
-    <div className="flex min-h-screen flex-col" dir="rtl">
-      <SiteHeader />
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </main>
-      <SiteFooter />
-      <CartDrawer />
-      <StickyOrderBar />
-    </div>
+    <CustomerAuthProvider>
+      <div className="flex min-h-screen flex-col" dir="rtl">
+        <SiteHeader />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/menu" element={<Menu />} />
+            <Route path="/offers" element={<Offers />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        </main>
+        <SiteFooter />
+        <CartDrawer />
+        <StickyOrderBar />
+      </div>
+    </CustomerAuthProvider>
   );
 }
 
@@ -95,6 +107,30 @@ function App() {
                 element={
                   <RequireDeveloper>
                     <BranchesEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="delivery-zones"
+                element={
+                  <RequireDeveloper>
+                    <DeliveryZonesEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="offers"
+                element={
+                  <RequireDeveloper>
+                    <OffersEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="inactive-customers"
+                element={
+                  <RequireDeveloper>
+                    <InactiveCustomers />
                   </RequireDeveloper>
                 }
               />

@@ -1,10 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { ShoppingBag, Menu, X, Phone } from "lucide-react";
+import { ShoppingBag, Menu, X, Phone, User } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSettings } from "@/lib/useSettings";
+import { useOffers } from "@/lib/useOffers";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "الرئيسية" },
   { to: "/menu", label: "المنيو" },
   { to: "/about", label: "عن بروست" },
@@ -14,7 +16,20 @@ const navItems = [
 export function SiteHeader() {
   const { totalCount, setCartOpen } = useCart();
   const { settings } = useSettings();
+  const { pageEnabled: offersEnabled } = useOffers();
+  const { session } = useCustomerAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // رابط "العروض" بيظهر بس لو المطور فعّل صفحة العروض من لوحة التحكم
+  const navItems = offersEnabled
+    ? [
+        baseNavItems[0],
+        baseNavItems[1],
+        { to: "/offers", label: "العروض" },
+        baseNavItems[2],
+        baseNavItems[3],
+      ]
+    : baseNavItems;
 
   return (
     <header className="sticky top-0 z-40 bg-forest text-cream shadow-md">
@@ -60,6 +75,16 @@ export function SiteHeader() {
             <Phone className="h-3.5 w-3.5" />
             {settings.phoneDisplay}
           </a>
+          <NavLink
+            to="/account"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-cream/25 text-cream transition-colors hover:border-fire hover:text-fire-light"
+            aria-label="حسابي"
+          >
+            <User className="h-4.5 w-4.5" />
+            {session && (
+              <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-forest" />
+            )}
+          </NavLink>
           <button
             onClick={() => setCartOpen(true)}
             className="relative flex h-10 w-10 items-center justify-center rounded-full bg-fire text-forest-deep transition-transform hover:scale-105"

@@ -1,14 +1,19 @@
 import { useState } from "react";
 import type { MenuItem } from "@/lib/useMenu";
 import { useCart } from "@/context/CartContext";
-import { Plus, Check } from "lucide-react";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
+import { useFavorites } from "@/lib/useFavorites";
+import { Plus, Check, Heart } from "lucide-react";
 
 export function MenuItemCard({ item, disabled = false }: { item: MenuItem; disabled?: boolean }) {
   const { addItem } = useCart();
+  const { session } = useCustomerAuth();
+  const { favoriteIds, toggleFavorite } = useFavorites(session?.user?.id);
   const [selectedSize, setSelectedSize] = useState(item.sizes ? item.sizes[0] : undefined);
   const [justAdded, setJustAdded] = useState(false);
 
   const displayPrice = selectedSize ? selectedSize.price : item.price;
+  const isFavorite = favoriteIds.has(item.id);
 
   const handleAdd = () => {
     addItem(item, selectedSize);
@@ -20,13 +25,26 @@ export function MenuItemCard({ item, disabled = false }: { item: MenuItem; disab
     <div className="group flex flex-col justify-between rounded-xl border border-forest/10 bg-white p-4 transition-shadow hover:shadow-md">
       <div>
         {item.imageUrl && (
-          <div className="mb-3 aspect-video w-full overflow-hidden rounded-lg bg-muted">
+          <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-lg bg-muted">
             <img
               src={item.imageUrl}
               alt={item.nameAr}
               className="h-full w-full object-cover"
               loading="lazy"
             />
+            {session && (
+              <button
+                onClick={() => toggleFavorite(item.id)}
+                className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm transition-transform active:scale-90"
+                aria-label="أضف للمفضلة"
+              >
+                <Heart
+                  className={`h-4 w-4 ${
+                    isFavorite ? "fill-chili text-chili" : "text-muted-foreground"
+                  }`}
+                />
+              </button>
+            )}
           </div>
         )}
         <div className="flex items-start justify-between gap-2">
@@ -36,11 +54,26 @@ export function MenuItemCard({ item, disabled = false }: { item: MenuItem; disab
             </h3>
             <p className="text-xs text-muted-foreground">{item.nameEn}</p>
           </div>
-          {item.badge && (
-            <span className="shrink-0 rounded-full bg-chili px-2 py-0.5 text-[10px] font-bold text-cream">
-              {item.badge}
-            </span>
-          )}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {!item.imageUrl && session && (
+              <button
+                onClick={() => toggleFavorite(item.id)}
+                className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted"
+                aria-label="أضف للمفضلة"
+              >
+                <Heart
+                  className={`h-4 w-4 ${
+                    isFavorite ? "fill-chili text-chili" : "text-muted-foreground"
+                  }`}
+                />
+              </button>
+            )}
+            {item.badge && (
+              <span className="rounded-full bg-chili px-2 py-0.5 text-[10px] font-bold text-cream">
+                {item.badge}
+              </span>
+            )}
+          </div>
         </div>
         {item.descAr && (
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{item.descAr}</p>

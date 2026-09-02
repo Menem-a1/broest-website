@@ -14,6 +14,7 @@ export type CartLine = {
 type CartContextType = {
   lines: CartLine[];
   addItem: (item: MenuItem, size?: { label: string; price: number }) => void;
+  addRawLine: (line: { itemId: string; nameAr: string; size?: string; unitPrice: number; qty: number }) => void;
   removeLine: (key: string) => void;
   changeQty: (key: string, delta: number) => void;
   clearCart: () => void;
@@ -51,6 +52,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // بتضيف صنف مباشرة من بيانات جاهزة (اسم، سعر وقت الطلب، كمية)
+  // من غير ما تحتاج كائن MenuItem كامل — بتستخدم في "إعادة الطلب"
+  // من سجل الطلبات السابقة، وبتحدّث الكمية لو الصنف موجود بالفعل
+  const addRawLine = (line: {
+    itemId: string;
+    nameAr: string;
+    size?: string;
+    unitPrice: number;
+    qty: number;
+  }) => {
+    const key = line.size ? `${line.itemId}-${line.size}` : line.itemId;
+    setLines((prev) => {
+      const existing = prev.find((l) => l.key === key);
+      if (existing) {
+        return prev.map((l) =>
+          l.key === key ? { ...l, qty: l.qty + line.qty } : l
+        );
+      }
+      return [...prev, { key, ...line }];
+    });
+  };
+
   const removeLine = (key: string) => {
     setLines((prev) => prev.filter((l) => l.key !== key));
   };
@@ -76,6 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         lines,
         addItem,
+        addRawLine,
         removeLine,
         changeQty,
         clearCart,

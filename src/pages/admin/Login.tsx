@@ -80,14 +80,24 @@ export function Login() {
     e.preventDefault();
     setError(null);
 
-    // فحص الـ lockout
-    if (lockoutUntil && lockoutUntil > Date.now()) {
-      const seconds = Math.ceil((lockoutUntil - Date.now()) / 1000);
-      const minutes = Math.ceil(seconds / 60);
-      setError(
-        `تم منع محاولات الدخول مؤقتاً. جرب بعد ${minutes} دقيقة (${seconds} ثانية)`
-      );
-      return;
+    // ✅ فحص الـ lockout من localStorage (مش من state) — هذا الحل!
+    const storedLockout = localStorage.getItem("loginLockout");
+    if (storedLockout) {
+      const lockoutTime = parseInt(storedLockout);
+      if (lockoutTime > Date.now()) {
+        const seconds = Math.ceil((lockoutTime - Date.now()) / 1000);
+        const minutes = Math.ceil(seconds / 60);
+        setError(
+          `تم منع محاولات الدخول مؤقتاً. جرب بعد ${minutes} دقيقة (${seconds} ثانية)`
+        );
+        return; // توقف، بلا محاولة!
+      } else {
+        // انتهت مدة الـ lockout، امسح السجل
+        localStorage.removeItem("loginLockout");
+        localStorage.removeItem("loginAttempts");
+        setFailedAttempts(0);
+        setLockoutUntil(null);
+      }
     }
 
     setSubmitting(true);
@@ -96,7 +106,8 @@ export function Login() {
 
     if (signInError) {
       // محاولة فاشلة
-      const newAttempts = failedAttempts + 1;
+      const storedAttempts = localStorage.getItem("loginAttempts");
+      const newAttempts = (storedAttempts ? parseInt(storedAttempts) : 0) + 1;
       setFailedAttempts(newAttempts);
       localStorage.setItem("loginAttempts", newAttempts.toString());
 

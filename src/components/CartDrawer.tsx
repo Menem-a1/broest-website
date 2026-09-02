@@ -130,7 +130,7 @@ export function CartDrawer() {
 
   return (
     <Sheet open={isCartOpen} onOpenChange={handleOpenChange}>
-      <SheetContent side="left" className="flex w-full flex-col gap-0 border-forest bg-paper p-0 sm:max-w-md">
+      <SheetContent side="left" className="flex min-h-0 w-full flex-col gap-0 border-forest bg-paper p-0 sm:max-w-md">
         <SheetHeader className="border-b border-forest/10 bg-forest px-5 py-4">
           <SheetTitle className="font-display text-xl text-cream">
             {step === "cart" && "سلة الطلب"}
@@ -150,7 +150,7 @@ export function CartDrawer() {
               </div>
             ) : (
               <>
-                <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
                   <ul className="flex flex-col gap-3">
                     {lines.map((line) => (
                       <li
@@ -232,8 +232,8 @@ export function CartDrawer() {
 
         {/* ===== خطوة 2: فورم بيانات التوصيل ===== */}
         {step === "checkout" && (
-          <form onSubmit={handleConfirmOrder} className="flex flex-1 flex-col">
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+          <form onSubmit={handleConfirmOrder} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
               <p className="mb-4 text-sm text-muted-foreground">
                 محتاجين بياناتك عشان نوصلك الطلب
               </p>

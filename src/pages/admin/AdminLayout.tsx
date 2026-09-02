@@ -10,13 +10,14 @@ import { useOrders } from "@/lib/useOrders";
 import { useOrderNotification } from "@/lib/useOrderNotification";
 import { useTabTitleAlert } from "@/lib/useTabTitleAlert";
 import { AdminErrorBoundary } from "@/pages/admin/AdminErrorBoundary";
-import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2, Users, Truck, Percent, UserX, Menu, X, Tag } from "lucide-react";
+import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2, Users, Truck, Percent, UserX, Menu, X, Tag, Heart } from "lucide-react";
 
 const navItems = [
   { to: "/admin", label: "الرئيسية", icon: LayoutGrid, end: true, developerOnly: false },
   { to: "/admin/orders", label: "الطلبات", icon: ClipboardList, developerOnly: false },
   { to: "/admin/menu", label: "المنيو والأسعار", icon: UtensilsCrossed, developerOnly: true },
   { to: "/admin/discounts", label: "الخصومات", icon: Tag, developerOnly: true },
+  { to: "/admin/curated-favorites", label: "مفضلة العملاء", icon: Heart, developerOnly: true },
   { to: "/admin/branches", label: "الفروع", icon: Building2, developerOnly: true },
   { to: "/admin/delivery-zones", label: "مناطق التوصيل", icon: Truck, developerOnly: true },
   { to: "/admin/offers", label: "العروض", icon: Percent, developerOnly: true },

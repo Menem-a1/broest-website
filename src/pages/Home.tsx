@@ -4,19 +4,20 @@ import { useSettings, buildWhatsAppLink } from "@/lib/useSettings";
 import { useBranches, formatHoursAr, isBranchOpenNow } from "@/lib/useBranches";
 import { useMenu } from "@/lib/useMenu";
 import { useHomeContent } from "@/lib/useHomeContent";
+import { useCuratedFavorites } from "@/lib/useCuratedFavorites";
 import { MenuItemCard } from "@/components/MenuItemCard";
 
 // دي القيم اللي بتظهر في قسم "الأكتر طلباً" — تقدر تغيرها بتعديل الأرقام هنا
 const RATING_VALUE = 4.2;
 const RATING_COUNT = 930;
-const FEATURED_IDS = ["family-meal", "zinger", "mix-meals", "chicken-smoked-mix"];
 
 export function Home() {
   const { settings } = useSettings();
   const { branches } = useBranches();
   const { menu } = useMenu();
   const { content } = useHomeContent();
-  const featured = menu.filter((m) => FEATURED_IDS.includes(m.id));
+  // الأصناف دي بتتحدد من لوحة التحكم → "مفضلة العملاء"، مش ثابتة في الكود
+  const { items: featured } = useCuratedFavorites(menu);
   const primaryBranch = branches[0];
 
   return (

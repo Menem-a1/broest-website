@@ -1,14 +1,47 @@
 // =====================================================
 // ملف: Offers.tsx
-// الغرض: صفحة عامة تعرض للعميل كل العروض والكوبونات النشطة
-// الصفحة دي بتتظهر أو تتخفي بالكامل من إعداد المطور
-// (offers_page_settings.is_page_enabled)
+// الغرض: صفحة عامة تعرض العروض (الباقات) للعميل، زي أي صنف
+// عادي في المنيو — سعر إجمالي واحد للباقة كلها
 // =====================================================
-import { Loader2, Percent } from "lucide-react";
+import { Loader2, Percent, Gift, Plus, Check } from "lucide-react";
+import { useState } from "react";
 import { useOffers } from "@/lib/useOffers";
+import { useCart } from "@/context/CartContext";
 
 export function Offers() {
   const { offers, loading } = useOffers();
+  const { addRawLine, setCartOpen } = useCart();
+  const [addedId, setAddedId] = useState<string | null>(null);
+
+  function addOfferToCart(offer: (typeof offers)[number]) {
+    // بنضيف الأصناف المدفوعة بنسبة من سعر الباقة (موزّع بالتساوي)
+    // والأصناف المجانية بسعر صفر — كله بيتحط في السلة كأصناف عادية
+    // باسم واضح إنها جزء من عرض، عشان يبان في تفاصيل الطلب
+    const paidCount = offer.paidItems.reduce((sum, i) => sum + i.quantity, 0) || 1;
+    const pricePerPaidUnit = offer.bundlePrice / paidCount;
+
+    offer.paidItems.forEach((item) => {
+      addRawLine({
+        itemId: `offer-${offer.id}-${item.itemId}`,
+        nameAr: `${item.nameAr} (عرض: ${offer.titleAr})`,
+        unitPrice: pricePerPaidUnit,
+        qty: item.quantity,
+      });
+    });
+
+    offer.freeItems.forEach((item) => {
+      addRawLine({
+        itemId: `offer-${offer.id}-free-${item.itemId}`,
+        nameAr: `${item.nameAr} (هدية مع عرض: ${offer.titleAr})`,
+        unitPrice: 0,
+        qty: item.quantity,
+      });
+    });
+
+    setAddedId(offer.id);
+    setTimeout(() => setAddedId(null), 1200);
+    setCartOpen(true);
+  }
 
   return (
     <div>
@@ -48,14 +81,9 @@ export function Offers() {
                   />
                 )}
                 <div className="flex flex-1 flex-col gap-3 p-5">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-fire/10 text-fire">
-                      <Percent className="h-4 w-4" />
-                    </span>
-                    <h3 className="font-display text-lg font-bold text-forest-deep">
-                      {offer.titleAr}
-                    </h3>
-                  </div>
+                  <h3 className="font-display text-lg font-bold text-forest-deep">
+                    {offer.titleAr}
+                  </h3>
 
                   {offer.descriptionAr && (
                     <p className="text-sm leading-relaxed text-muted-foreground">
@@ -63,11 +91,36 @@ export function Offers() {
                     </p>
                   )}
 
-                  <p className="font-price text-xl font-bold text-fire">
-                    {offer.discountType === "percentage"
-                      ? `خصم ${offer.discountValue}%`
-                      : `خصم ${offer.discountValue} ج.م`}
-                  </p>
+                  <ul className="flex flex-col gap-1 text-sm">
+                    {offer.paidItems.map((item, i) => (
+                      <li key={`paid-${i}`} className="text-forest-deep/80">
+                        {item.quantity}× {item.nameAr}
+                      </li>
+                    ))}
+                    {offer.freeItems.map((item, i) => (
+                      <li key={`free-${i}`} className="flex items-center gap-1.5 font-bold text-fire">
+                        <Gift className="h-3.5 w-3.5" />
+                        {item.quantity}× {item.nameAr} — هدية
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+                    <span className="font-price text-xl font-bold text-fire">
+                      {offer.bundlePrice} ج.م
+                    </span>
+                    <button
+                      onClick={() => addOfferToCart(offer)}
+                      className="flex items-center gap-1.5 rounded-full bg-forest px-4 py-2 text-sm font-bold text-cream hover:bg-forest-deep"
+                    >
+                      {addedId === offer.id ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                      اطلب العرض
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

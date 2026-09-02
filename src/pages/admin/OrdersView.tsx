@@ -9,6 +9,8 @@ import { useOrders, statusLabel } from "@/lib/useOrders";
 import type { OrderStatus, Order } from "@/lib/useOrders";
 import { paymentMethodLabel, paymentStatusLabel } from "@/lib/payment/types";
 import { useAuth } from "@/context/AuthContext";
+import { useBranches } from "@/lib/useBranches";
+import { useOrderCounterReset } from "@/lib/useOrderCounterReset";
 import {
   Loader2,
   Clock,
@@ -20,6 +22,7 @@ import {
   Check,
   Download,
   Hash,
+  RotateCcw,
 } from "lucide-react";
 
 const STATUS_STYLES: Record<OrderStatus, { active: string; idle: string }> = {
@@ -100,6 +103,10 @@ export function OrdersView() {
   const { orders, loading, error, updateStatus, updatePaymentStatus } = useOrders();
   const { role } = useAuth();
   const isDeveloper = role === "developer";
+  const { branches } = useBranches();
+  const { autoResetEnabled, manualReset, toggleAutoReset } = useOrderCounterReset(
+    branches[0]?.opensAt
+  );
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -168,6 +175,28 @@ export function OrdersView() {
         )}
       </div>
 
+      {/* تصفير عداد الطلبات — متاح للمطور بس */}
+      {isDeveloper && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-muted/40 px-3 py-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-forest-deep">
+            <input
+              type="checkbox"
+              checked={autoResetEnabled}
+              onChange={(e) => toggleAutoReset(e.target.checked)}
+            />
+            تصفير العداد تلقائي وقت فتح المطعم
+          </label>
+          <button
+            onClick={() => {
+              if (confirm("متأكد إنك عايز تصفّر عداد الطلبات دلوقتي؟")) manualReset();
+            }}
+            className="flex items-center gap-1.5 rounded-full border border-forest/20 px-3 py-1.5 text-xs font-semibold text-forest-deep hover:bg-white"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> صفّر العداد دلوقتي
+          </button>
+        </div>
+      )}
+
       {filteredOrders.length === 0 ? (
         <div className="mt-12 flex flex-col items-center gap-2 text-center text-muted-foreground">
           <span className="text-4xl">📋</span>
@@ -192,21 +221,36 @@ export function OrdersView() {
                 </div>
               </div>
 
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {STATUS_OPTIONS.map((s) => {
-                  const isActive = order.status === s;
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => updateStatus(order.id, s)}
-                      className={`rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-colors ${
-                        isActive ? STATUS_STYLES[s].active : STATUS_STYLES[s].idle
-                      }`}
-                    >
-                      {statusLabel(s)}
-                    </button>
-                  );
-                })}
+              <div className="mt-2.5 flex items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {STATUS_OPTIONS.map((s) => {
+                    const isActive = order.status === s;
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => updateStatus(order.id, s)}
+                        className={`rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-colors ${
+                          isActive ? STATUS_STYLES[s].active : STATUS_STYLES[s].idle
+                        }`}
+                      >
+                        {statusLabel(s)}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {order.paymentStatus !== "paid" ? (
+                  <button
+                    onClick={() => updatePaymentStatus(order.id, "paid")}
+                    className="flex shrink-0 items-center gap-1 rounded-full border-2 border-emerald-500 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+                  >
+                    <Check className="h-3.5 w-3.5" /> اتحصّل
+                  </button>
+                ) : (
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">
+                    <Check className="h-3.5 w-3.5" /> اتحصّل
+                  </span>
+                )}
               </div>
 
               <div className="mt-3 flex flex-col gap-1.5 rounded-lg bg-muted/50 p-3 text-sm">
@@ -261,14 +305,6 @@ export function OrdersView() {
                     {paymentStatusLabel(order.paymentStatus)}
                   </span>
                 </div>
-                {order.paymentStatus !== "paid" && (
-                  <button
-                    onClick={() => updatePaymentStatus(order.id, "paid")}
-                    className="flex items-center gap-1 rounded-full border border-emerald-200 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-                  >
-                    <Check className="h-3 w-3" /> اتحصّل
-                  </button>
-                )}
               </div>
 
               <ul className="mt-3 flex flex-col gap-1 border-t border-forest/10 pt-3">

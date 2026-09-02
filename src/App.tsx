@@ -27,6 +27,7 @@ import { BranchesEditor } from "@/pages/admin/BranchesEditor";
 import { DeliveryZonesEditor } from "@/pages/admin/DeliveryZonesEditor";
 import { OffersEditor } from "@/pages/admin/OffersEditor";
 import { DiscountsEditor } from "@/pages/admin/DiscountsEditor";
+import { CuratedFavoritesEditor } from "@/pages/admin/CuratedFavoritesEditor";
 import { InactiveCustomers } from "@/pages/admin/InactiveCustomers";
 import { UsersEditor } from "@/pages/admin/UsersEditor";
 
@@ -132,6 +133,14 @@ function App() {
                 element={
                   <RequireDeveloper>
                     <DiscountsEditor />
+                  </RequireDeveloper>
+                }
+              />
+              <Route
+                path="curated-favorites"
+                element={
+                  <RequireDeveloper>
+                    <CuratedFavoritesEditor />
                   </RequireDeveloper>
                 }
               />

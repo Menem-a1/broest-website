@@ -64,21 +64,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // حماية من محاولات الدخول المتكررة: بعد 5 محاولات فاشلة، قفل 5 دقايق
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MS = 5 * 60 * 1000;
+
+  function getLockoutState() {
+    const raw = localStorage.getItem("admin_login_attempts");
+    if (!raw) return { count: 0, lockedUntil: 0 };
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return { count: 0, lockedUntil: 0 };
+    }
+  }
+
   async function signIn(email: string, password: string) {
+    const state = getLockoutState();
+    if (state.lockedUntil > Date.now()) {
+      const minutesLeft = Math.ceil((state.lockedUntil - Date.now()) / 60000);
+      return { error: `محاولات كتير غلط، جرب تاني بعد ${minutesLeft} دقيقة` };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      // بنترجم أشهر رسائل الخطأ للعربي عشان تكون واضحة
+      const newCount = state.count + 1;
+      const newState =
+        newCount >= MAX_ATTEMPTS
+          ? { count: 0, lockedUntil: Date.now() + LOCKOUT_MS }
+          : { count: newCount, lockedUntil: 0 };
+      localStorage.setItem("admin_login_attempts", JSON.stringify(newState));
+
+      if (newCount >= MAX_ATTEMPTS) {
+        return { error: "محاولات كتير غلط، الحساب مقفول 5 دقايق" };
+      }
       if (error.message.includes("Invalid login credentials")) {
         return { error: "الإيميل أو الباسورد غلط" };
       }
       return { error: "حصلت مشكلة، حاول تاني" };
     }
+
+    localStorage.removeItem("admin_login_attempts");
     return { error: null };
   }
 
   async function signOut() {
     await supabase.auth.signOut();
   }
+
+  // تسجيل خروج تلقائي بعد 20 دقيقة من غير أي حركة (كليك أو كتابة)
+  // بيحمي لو حد نسي يعمل logout على جهاز عام (زي مقهى إنترنت)
+  useEffect(() => {
+    if (!session) return;
+    const TIMEOUT_MS = 20 * 60 * 1000;
+    let timer: ReturnType<typeof setTimeout>;
+
+    function resetTimer() {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        supabase.auth.signOut();
+      }, TIMEOUT_MS);
+    }
+
+    const events = ["mousedown", "keydown", "touchstart", "scroll"];
+    events.forEach((e) => window.addEventListener(e, resetTimer));
+    resetTimer();
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [session]);
 
   return (
     <AuthContext.Provider value={{ session, loading, role, roleLoading, signIn, signOut }}>

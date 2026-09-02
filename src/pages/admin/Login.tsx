@@ -77,67 +77,27 @@ export function Login() {
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  e.preventDefault();
+  setError(null);
 
-    // ✅ فحص الـ lockout من localStorage (مش من state) — هذا الحل!
-    const storedLockout = localStorage.getItem("loginLockout");
-    if (storedLockout) {
-      const lockoutTime = parseInt(storedLockout);
-      if (lockoutTime > Date.now()) {
-        const seconds = Math.ceil((lockoutTime - Date.now()) / 1000);
-        const minutes = Math.ceil(seconds / 60);
-        setError(
-          `تم منع محاولات الدخول مؤقتاً. جرب بعد ${minutes} دقيقة (${seconds} ثانية)`
-        );
-        return; // توقف، بلا محاولة!
-      } else {
-        // انتهت مدة الـ lockout، امسح السجل
-        localStorage.removeItem("loginLockout");
-        localStorage.removeItem("loginAttempts");
-        setFailedAttempts(0);
-        setLockoutUntil(null);
-      }
-    }
-
-    setSubmitting(true);
-    const { error: signInError } = await signIn(email, password);
-    setSubmitting(false);
-
-    if (signInError) {
-      // محاولة فاشلة
-      const storedAttempts = localStorage.getItem("loginAttempts");
-      const newAttempts = (storedAttempts ? parseInt(storedAttempts) : 0) + 1;
-      setFailedAttempts(newAttempts);
-      localStorage.setItem("loginAttempts", newAttempts.toString());
-
-      // حساب الـ lockout الجديد
-      const lockoutDuration = calculateLockoutDuration(newAttempts);
-
-      if (lockoutDuration > 0) {
-        const newLockoutUntil = Date.now() + lockoutDuration;
-        setLockoutUntil(newLockoutUntil);
-        localStorage.setItem("loginLockout", newLockoutUntil.toString());
-
-        const minutes = Math.ceil(lockoutDuration / 60000);
-        setError(
-          `محاولات كثيرة! تم منع الدخول لـ ${minutes} دقيقة. جرب بعدين.`
-        );
-      } else {
-        const newAttemptsRemaining = 5 - newAttempts;
-        setError(
-          `${signInError} — لديك ${newAttemptsRemaining} محاولات متبقية`
-        );
-      }
+  // ✅ فحص الـ lockout من localStorage مباشرة
+  const storedLockout = localStorage.getItem("loginLockout");
+  if (storedLockout) {
+    const lockoutTime = parseInt(storedLockout);
+    if (lockoutTime > Date.now()) {
+      const seconds = Math.ceil((lockoutTime - Date.now()) / 1000);
+      const minutes = Math.ceil(seconds / 60);
+      setError(
+        `تم منع محاولات الدخول مؤقتاً. جرب بعد ${minutes} دقيقة (${seconds} ثانية)`
+      );
+      return;
     } else {
-      // نجح الدخول — امسح السجل
-      localStorage.removeItem("loginAttempts");
       localStorage.removeItem("loginLockout");
+      localStorage.removeItem("loginAttempts");
       setFailedAttempts(0);
       setLockoutUntil(null);
     }
   }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-forest px-4" dir="rtl">
       <div className="w-full max-w-sm rounded-2xl bg-paper p-8 shadow-xl">

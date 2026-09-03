@@ -18,6 +18,7 @@ type Settings = {
   avg_spend_ar: string;
   logo_url: string | null;
   favicon_url: string | null;
+  estimated_delivery_minutes: number;
   payment_gateway_enabled: boolean;
   paymob_api_key: string;
   paymob_integration_id: string;
@@ -159,6 +160,29 @@ export function SettingsEditor() {
             )}
           </div>
         ))}
+
+        <div>
+          <label className="mb-1 block text-sm font-semibold text-forest-deep">
+            وقت التسليم المتوقع (بالدقايق)
+          </label>
+          <input
+            type="number"
+            min={5}
+            max={180}
+            value={settings.estimated_delivery_minutes}
+            onChange={(e) =>
+              setSettings((prev) =>
+                prev
+                  ? { ...prev, estimated_delivery_minutes: Number(e.target.value) || 0 }
+                  : prev
+              )
+            }
+            className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            بيظهر للعميل في شاشة تأكيد الطلب. غيّره وقت الزحمة أو لو الفرع مشغول
+          </p>
+        </div>
       </div>
 
       {/* إعدادات الدفع الإلكتروني */}

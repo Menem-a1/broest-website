@@ -5,6 +5,7 @@ import { useCustomerAuth } from "@/context/CustomerAuthContext";
 import { useBranches, isBranchOpenNow } from "@/lib/useBranches";
 import { useDeliveryZones } from "@/lib/useDeliveryZones";
 import { useOrderingStatus } from "@/lib/useOrderingStatus";
+import { useSettings } from "@/lib/useSettings";
 import { useCustomerAddresses } from "@/lib/useCustomerAddresses";
 import { useNavigate } from "react-router-dom";
 import { usePaymentSettings } from "@/lib/payment/usePaymentSettings";
@@ -36,6 +37,7 @@ export function CartDrawer() {
   const { branches } = useBranches();
   const { zones } = useDeliveryZones();
   const { isPaused: orderingPaused, message: pausedMessage } = useOrderingStatus();
+  const { settings } = useSettings();
   const { addresses: savedAddresses } = useCustomerAddresses(session?.user?.id);
   const [showSavedAddresses, setShowSavedAddresses] = useState(false);
   const navigate = useNavigate();
@@ -506,12 +508,30 @@ export function CartDrawer() {
                 : "هنجهزه ونوصله لك في أقرب وقت."}
               {" "}لو احتجنا أي تفاصيل هنتواصل معاك على الرقم اللي كتبته.
             </p>
-            <button
-              onClick={() => handleOpenChange(false)}
-              className="mt-2 rounded-full bg-forest px-6 py-2.5 text-sm font-semibold text-cream"
-            >
-              تمام
-            </button>
+            {fulfillmentType === "delivery" && (
+              <p className="text-sm font-semibold text-forest-deep">
+                هيوصلك خلال {settings.estimatedDeliveryMinutes} دقيقة تقريبًا
+              </p>
+            )}
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              {session && (
+                <button
+                  onClick={() => {
+                    handleOpenChange(false);
+                    navigate("/account");
+                  }}
+                  className="rounded-full border border-forest/20 px-6 py-2.5 text-sm font-semibold text-forest-deep"
+                >
+                  تابع طلبك
+                </button>
+              )}
+              <button
+                onClick={() => handleOpenChange(false)}
+                className="rounded-full bg-forest px-6 py-2.5 text-sm font-semibold text-cream"
+              >
+                تمام
+              </button>
+            </div>
           </div>
         )}
       </SheetContent>

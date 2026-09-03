@@ -1,4 +1,5 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { CustomerAuthProvider } from "@/context/CustomerAuthContext";
@@ -16,20 +17,62 @@ import { About } from "@/pages/About";
 import { Contact } from "@/pages/Contact";
 import { Login } from "@/pages/admin/Login";
 import { RequireAuth, RequireDeveloper } from "@/pages/admin/RequireAuth";
-import { AdminLayout } from "@/pages/admin/AdminLayout";
-import { Dashboard } from "@/pages/admin/Dashboard";
-import { MenuEditor } from "@/pages/admin/MenuEditor";
-import { SettingsEditor } from "@/pages/admin/SettingsEditor";
-import { OrdersView } from "@/pages/admin/OrdersView";
-import { HomeEditor } from "@/pages/admin/HomeEditor";
-import { ReviewsEditor } from "@/pages/admin/ReviewsEditor";
-import { BranchesEditor } from "@/pages/admin/BranchesEditor";
-import { DeliveryZonesEditor } from "@/pages/admin/DeliveryZonesEditor";
-import { OffersEditor } from "@/pages/admin/OffersEditor";
-import { DiscountsEditor } from "@/pages/admin/DiscountsEditor";
-import { CuratedFavoritesEditor } from "@/pages/admin/CuratedFavoritesEditor";
-import { InactiveCustomers } from "@/pages/admin/InactiveCustomers";
-import { UsersEditor } from "@/pages/admin/UsersEditor";
+import { Loader2 } from "lucide-react";
+
+// صفحات لوحة التحكم بتتحمّل بس لما حد يفتح /admin فعليًا،
+// مش مع تحميل الموقع العام من الأول — بتقلل حجم أول تحميل
+// للعميل العادي اللي مش هيفتح لوحة التحكم خالص
+const AdminLayout = lazy(() =>
+  import("@/pages/admin/AdminLayout").then((m) => ({ default: m.AdminLayout }))
+);
+const Dashboard = lazy(() =>
+  import("@/pages/admin/Dashboard").then((m) => ({ default: m.Dashboard }))
+);
+const MenuEditor = lazy(() =>
+  import("@/pages/admin/MenuEditor").then((m) => ({ default: m.MenuEditor }))
+);
+const SettingsEditor = lazy(() =>
+  import("@/pages/admin/SettingsEditor").then((m) => ({ default: m.SettingsEditor }))
+);
+const OrdersView = lazy(() =>
+  import("@/pages/admin/OrdersView").then((m) => ({ default: m.OrdersView }))
+);
+const HomeEditor = lazy(() =>
+  import("@/pages/admin/HomeEditor").then((m) => ({ default: m.HomeEditor }))
+);
+const ReviewsEditor = lazy(() =>
+  import("@/pages/admin/ReviewsEditor").then((m) => ({ default: m.ReviewsEditor }))
+);
+const BranchesEditor = lazy(() =>
+  import("@/pages/admin/BranchesEditor").then((m) => ({ default: m.BranchesEditor }))
+);
+const DeliveryZonesEditor = lazy(() =>
+  import("@/pages/admin/DeliveryZonesEditor").then((m) => ({ default: m.DeliveryZonesEditor }))
+);
+const OffersEditor = lazy(() =>
+  import("@/pages/admin/OffersEditor").then((m) => ({ default: m.OffersEditor }))
+);
+const DiscountsEditor = lazy(() =>
+  import("@/pages/admin/DiscountsEditor").then((m) => ({ default: m.DiscountsEditor }))
+);
+const CuratedFavoritesEditor = lazy(() =>
+  import("@/pages/admin/CuratedFavoritesEditor").then((m) => ({ default: m.CuratedFavoritesEditor }))
+);
+const InactiveCustomers = lazy(() =>
+  import("@/pages/admin/InactiveCustomers").then((m) => ({ default: m.InactiveCustomers }))
+);
+const UsersEditor = lazy(() =>
+  import("@/pages/admin/UsersEditor").then((m) => ({ default: m.UsersEditor }))
+);
+
+// شاشة تحميل بسيطة تظهر لحظة تحميل أي صفحة أدمن لأول مرة
+function AdminLoadingFallback() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-fire" />
+    </div>
+  );
+}
 
 // الموقع العام (اللي بيشوفه العملاء): هيدر + فوتر + سلة + شريط الطلب
 // CustomerAuthProvider بيلف الموقع العام بس، عشان دخول العميل بجوجل
@@ -74,17 +117,21 @@ function App() {
               path="/admin"
               element={
                 <RequireAuth>
-                  <AdminLayout />
+                  <Suspense fallback={<AdminLoadingFallback />}>
+                    <AdminLayout />
+                  </Suspense>
                 </RequireAuth>
               }
             >
-              <Route index element={<Dashboard />} />
-              <Route path="orders" element={<OrdersView />} />
+              <Route index element={<Suspense fallback={<AdminLoadingFallback />}><Dashboard /></Suspense>} />
+              <Route path="orders" element={<Suspense fallback={<AdminLoadingFallback />}><OrdersView /></Suspense>} />
               <Route
                 path="menu"
                 element={
                   <RequireDeveloper>
-                    <MenuEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <MenuEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -92,7 +139,9 @@ function App() {
                 path="home"
                 element={
                   <RequireDeveloper>
-                    <HomeEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <HomeEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -100,7 +149,9 @@ function App() {
                 path="reviews"
                 element={
                   <RequireDeveloper>
-                    <ReviewsEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <ReviewsEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -108,7 +159,9 @@ function App() {
                 path="branches"
                 element={
                   <RequireDeveloper>
-                    <BranchesEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <BranchesEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -116,7 +169,9 @@ function App() {
                 path="delivery-zones"
                 element={
                   <RequireDeveloper>
-                    <DeliveryZonesEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <DeliveryZonesEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -124,7 +179,9 @@ function App() {
                 path="offers"
                 element={
                   <RequireDeveloper>
-                    <OffersEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <OffersEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -132,7 +189,9 @@ function App() {
                 path="discounts"
                 element={
                   <RequireDeveloper>
-                    <DiscountsEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <DiscountsEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -140,7 +199,9 @@ function App() {
                 path="curated-favorites"
                 element={
                   <RequireDeveloper>
-                    <CuratedFavoritesEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <CuratedFavoritesEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -148,7 +209,9 @@ function App() {
                 path="inactive-customers"
                 element={
                   <RequireDeveloper>
-                    <InactiveCustomers />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <InactiveCustomers />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -156,7 +219,9 @@ function App() {
                 path="settings"
                 element={
                   <RequireDeveloper>
-                    <SettingsEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <SettingsEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />
@@ -164,7 +229,9 @@ function App() {
                 path="users"
                 element={
                   <RequireDeveloper>
-                    <UsersEditor />
+                    <Suspense fallback={<AdminLoadingFallback />}>
+                      <UsersEditor />
+                    </Suspense>
                   </RequireDeveloper>
                 }
               />

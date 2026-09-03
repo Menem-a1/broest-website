@@ -16,6 +16,7 @@ export type RestaurantSettings = {
   avgSpendAr: string;
   logoUrl: string | null;
   faviconUrl: string | null;
+  estimatedDeliveryMinutes: number;
 };
 
 const FALLBACK_SETTINGS: RestaurantSettings = {
@@ -28,6 +29,7 @@ const FALLBACK_SETTINGS: RestaurantSettings = {
   avgSpendAr: "٢٠٠–٤٠٠ ج.م للفرد",
   logoUrl: null,
   faviconUrl: null,
+  estimatedDeliveryMinutes: 40,
 };
 
 export function useSettings() {
@@ -57,6 +59,7 @@ export function useSettings() {
           avgSpendAr: data.avg_spend_ar,
           logoUrl: data.logo_url || null,
           faviconUrl: data.favicon_url || null,
+          estimatedDeliveryMinutes: data.estimated_delivery_minutes ?? 40,
         });
       }
       // لو حصل خطأ، بنفضل مستخدمين FALLBACK_SETTINGS عشان الموقع يفضل شغال

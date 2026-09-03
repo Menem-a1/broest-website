@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { ShoppingBag, Menu, X, Phone, User } from "lucide-react";
+import { ShoppingBag, Menu, X, Phone, User, Heart } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSettings } from "@/lib/useSettings";
 import { useOffers } from "@/lib/useOffers";
 import { useCustomerAuth } from "@/context/CustomerAuthContext";
+import { useFavorites } from "@/lib/useFavorites";
 
 const baseNavItems = [
   { to: "/", label: "الرئيسية" },
@@ -18,6 +19,7 @@ export function SiteHeader() {
   const { settings } = useSettings();
   const { pageEnabled: offersEnabled } = useOffers();
   const { session } = useCustomerAuth();
+  const { favoriteIds } = useFavorites(session?.user?.id);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // رابط "العروض" بيظهر بس لو المطور فعّل صفحة العروض من لوحة التحكم
@@ -85,6 +87,18 @@ export function SiteHeader() {
               <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-forest" />
             )}
           </NavLink>
+          {session && favoriteIds.size > 0 && (
+            <NavLink
+              to="/account"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-cream/25 text-cream transition-colors hover:border-fire hover:text-fire-light md:flex"
+              aria-label="المفضلة"
+            >
+              <Heart className="h-4.5 w-4.5" />
+              <span className="absolute -top-1 -left-1 flex h-5 w-5 items-center justify-center rounded-full bg-chili text-[11px] font-bold text-cream">
+                {favoriteIds.size}
+              </span>
+            </NavLink>
+          )}
           <button
             onClick={() => setCartOpen(true)}
             className="relative flex h-10 w-10 items-center justify-center rounded-full bg-fire text-forest-deep transition-transform hover:scale-105"

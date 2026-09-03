@@ -42,6 +42,34 @@ export type FulfillmentInfo =
   | { type: "delivery"; zoneId: string; deliveryPrice: number }
   | { type: "pickup"; branchId: string };
 
+// حماية بسيطة من الطلبات الوهمية/المتكررة: لو حد ضغط "تأكيد الطلب"
+// كذا مرة بسرعة (غلط أو عن قصد)، النظام بيرفض ويوريه رسالة واضحة
+// بدل ما يسجل نفس الطلب أو طلبات فاضية كتير في لوحة التحكم
+const ORDER_COOLDOWN_MS = 20_000; // 20 ثانية بين كل طلب والتاني من نفس الجهاز
+const LAST_ORDER_KEY = "broest_last_order_at";
+
+function checkOrderCooldown(): { allowed: boolean; secondsLeft: number } {
+  try {
+    const last = Number(localStorage.getItem(LAST_ORDER_KEY) || "0");
+    const elapsed = Date.now() - last;
+    if (elapsed < ORDER_COOLDOWN_MS) {
+      return { allowed: false, secondsLeft: Math.ceil((ORDER_COOLDOWN_MS - elapsed) / 1000) };
+    }
+    return { allowed: true, secondsLeft: 0 };
+  } catch {
+    // لو localStorage مش متاح لأي سبب، منمنعش الطلب — الحماية دي إضافية مش أساسية
+    return { allowed: true, secondsLeft: 0 };
+  }
+}
+
+function markOrderSent() {
+  try {
+    localStorage.setItem(LAST_ORDER_KEY, String(Date.now()));
+  } catch {
+    // تجاهل لو مش متاح
+  }
+}
+
 // بتتنادى من صفحة السلة لما العميل يأكد الطلب
 // بتسجل الطلب في قاعدة البيانات عشان يظهر في لوحة التحكم
 export async function saveOrder(
@@ -52,6 +80,16 @@ export async function saveOrder(
   fulfillment: FulfillmentInfo,
   extras?: { customerUserId?: string }
 ) {
+  const cooldown = checkOrderCooldown();
+  if (!cooldown.allowed) {
+    return {
+      success: false,
+      orderId: null,
+      displayNumber: null,
+      errorMessage: `استنى ${cooldown.secondsLeft} ثانية قبل ما تبعت طلب تاني`,
+    };
+  }
+
   const items = lines.map((l) => ({
     nameAr: l.nameAr,
     size: l.size,
@@ -90,6 +128,7 @@ export async function saveOrder(
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
     return { success: false, orderId: null, displayNumber: null, errorMessage: error.message };
   }
+  markOrderSent();
   return { success: true, orderId: data?.id ?? null, displayNumber: data?.display_number ?? null };
 }
 

@@ -1,0 +1,30 @@
+# الاعتماديات
+node_modules/
+
+# ناتج البناء
+dist/
+build/
+
+# المتغيرات السرية — مهم: مترفعهاش أبدًا
+.env
+.env.*
+!.env.example
+
+# كاش الأدوات
+.cache/
+.parcel-cache/
+.vite/
+.turbo/
+*.tsbuildinfo
+
+# نظام التشغيل والمحرر
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# لوجات
+*.log
+npm-debug.log*
+pnpm-debug.log*

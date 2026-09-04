@@ -213,15 +213,23 @@ function OrdersTab({ userId, onReorder }: { userId: string; onReorder: () => voi
   }, [orders]);
 
   function handleReorder(order: (typeof orders)[number]) {
-    order.items.forEach((item) => {
-      addRawLine({
-        itemId: item.nameAr, // مفيش item_id متخزن في الطلب القديم، فبنستخدم الاسم كمفتاح فريد كافي هنا
-        nameAr: item.nameAr,
-        size: item.size,
-        unitPrice: item.unitPrice,
-        qty: item.qty,
+    // لازم نبعت itemId الحقيقي المتخزّن في الطلب، مش اسم الصنف.
+    // السبب: قاعدة البيانات فيها دالة calculate_verified_items_total
+    // بتدوّر على كل صنف في جدول المنيو بالـ id، ولو ملقتوش بترمي
+    // "صنف غير موجود في المنيو" وتوقف الطلب كله.
+    // فأصناف الطلبات القديمة اللي متخزّنهاش بـ itemId بنتخطاها
+    // بدل ما نسمّم السلة بصنف هيوقّع الطلب.
+    order.items
+      .filter((item) => typeof item.itemId === "string" && item.itemId.length > 0)
+      .forEach((item) => {
+        addRawLine({
+          itemId: item.itemId as string,
+          nameAr: item.nameAr,
+          size: item.size,
+          unitPrice: item.unitPrice,
+          qty: item.qty,
+        });
       });
-    });
     setCartOpen(true);
     onReorder();
   }

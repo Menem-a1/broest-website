@@ -76,26 +76,25 @@ export function MenuEditor() {
     return sizes.filter((s) => s.item_id === itemId);
   }
 
+  // بتضيف صف حجم فاضي جاهز للتعديل المباشر (زي باقي الأحجام)،
+  // بدل نافذة منبثقة منفصلة — العنصر بيتحفظ فعليًا أول ما تدوس
+  // برّه الحقل (onBlur) في updateSize/saveSize
   async function addSize(itemId: string) {
-    const label = prompt("اسم الحجم (مثال: وسط، كبير، XL):");
-    if (!label) return;
-    const priceStr = prompt(`سعر حجم "${label}":`);
-    const price = Number(priceStr);
-    if (!priceStr || isNaN(price)) {
-      alert("السعر لازم يكون رقم");
-      return;
-    }
-    const { error } = await supabase.from("item_sizes").insert({
-      item_id: itemId,
-      label,
-      price,
-      sort_order: sizesForItem(itemId).length,
-    });
-    if (!error) {
-      loadData();
+    const { data, error } = await supabase
+      .from("item_sizes")
+      .insert({
+        item_id: itemId,
+        label: "حجم جديد",
+        price: 0,
+        sort_order: sizesForItem(itemId).length,
+      })
+      .select("id, item_id, label, price, sort_order")
+      .single();
+    if (!error && data) {
+      setSizes((prev) => [...prev, data]);
     } else {
       console.error("خطأ في إضافة الحجم:", error);
-      alert(`حصلت مشكلة في إضافة الحجم:\n${error.message}`);
+      alert(`حصلت مشكلة في إضافة الحجم:\n${error?.message}`);
     }
   }
 

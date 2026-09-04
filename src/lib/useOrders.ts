@@ -90,7 +90,10 @@ export async function saveOrder(
     };
   }
 
+  // بنبعت itemId مع كل صنف عشان قاعدة البيانات تقدر تتأكد من السعر
+  // الحقيقي بنفسها من جدول المنيو، مش تصدّق السعر اللي جاي من المتصفح
   const items = lines.map((l) => ({
+    itemId: l.itemId,
     nameAr: l.nameAr,
     size: l.size,
     qty: l.qty,

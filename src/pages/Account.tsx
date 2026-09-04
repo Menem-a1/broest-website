@@ -26,7 +26,7 @@ import {
   Package,
   Star,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { submitOrderReview } from "@/lib/useOrderReview";
 
 type Tab = "orders" | "favorites" | "addresses";
@@ -129,7 +129,12 @@ function AuthGate() {
 export function Account() {
   const { session, loading, signOut } = useCustomerAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>("orders");
+  const [searchParams] = useSearchParams();
+  // لو الرابط فيه ?tab=favorites (زي لما تدوس على زرار القلب في الهيدر)،
+  // نفتح تبويب المفضلة على طول بدل "طلباتي" الافتراضي
+  const requestedTab = searchParams.get("tab");
+  const initialTab: Tab = requestedTab === "favorites" || requestedTab === "addresses" ? requestedTab : "orders";
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   if (loading) {
     return (

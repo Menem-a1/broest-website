@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CartDrawer } from "@/components/CartDrawer";
 import { StickyOrderBar } from "@/components/StickyOrderBar";
+import { PublicErrorBoundary } from "@/components/PublicErrorBoundary";
 import { useSettings } from "@/lib/useSettings";
 import { useFavicon } from "@/lib/useFavicon";
 import { Home } from "@/pages/Home";
@@ -82,24 +83,26 @@ function PublicSite() {
   useFavicon(settings.faviconUrl);
 
   return (
-    <CustomerAuthProvider>
-      <div className="flex min-h-screen flex-col" dir="rtl">
-        <SiteHeader />
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/menu" element={<Menu />} />
-            <Route path="/offers" element={<Offers />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-          </Routes>
-        </main>
-        <SiteFooter />
-        <CartDrawer />
-        <StickyOrderBar />
-      </div>
-    </CustomerAuthProvider>
+    <PublicErrorBoundary>
+      <CustomerAuthProvider>
+        <div className="flex min-h-screen flex-col" dir="rtl">
+          <SiteHeader />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/menu" element={<Menu />} />
+              <Route path="/offers" element={<Offers />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+            </Routes>
+          </main>
+          <SiteFooter />
+          <CartDrawer />
+          <StickyOrderBar />
+        </div>
+      </CustomerAuthProvider>
+    </PublicErrorBoundary>
   );
 }
 

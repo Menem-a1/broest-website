@@ -11,6 +11,7 @@ import { paymentMethodLabel, paymentStatusLabel } from "@/lib/payment/types";
 import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/lib/useBranches";
 import { useOrderCounterReset } from "@/lib/useOrderCounterReset";
+import { cairoDateKey } from "@/lib/cairoTime";
 import {
   Loader2,
   Clock,
@@ -94,7 +95,7 @@ function exportOrdersToCsv(orders: Order[]) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `طلبات-بروست-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `طلبات-بروست-${cairoDateKey()}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -113,7 +114,7 @@ export function OrdersView() {
   // الطلبات المفلترة حسب التاريخ (لو المطور اختار مدى زمني)، مرتبة الأحدث الأول
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
-      const orderDate = o.createdAt.slice(0, 10);
+      const orderDate = cairoDateKey(new Date(o.createdAt));
       if (dateFrom && orderDate < dateFrom) return false;
       if (dateTo && orderDate > dateTo) return false;
       return true;

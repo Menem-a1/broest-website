@@ -6,7 +6,7 @@ import { Phone, MapPin, Clock, Globe, Image as ImageIcon, MessageCircle } from "
 
 // دي قيم تسويقية بسيطة مش محتاجة تتعدل باستمرار، فسايبينها هنا
 // (لو حبيت تضيفها للوحة التحكم بعدين، سهل تتنقل لجدول restaurant_settings)
-const TAGLINE_AR = "دجاج مقرمش. من غير كلام كتير.";
+const TAGLINE_AR = "فراخ مقرمشه. من غير كلام كتير.";
 const RATING_VALUE = 4.2;
 const RATING_COUNT = 930;
 

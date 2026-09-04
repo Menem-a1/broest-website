@@ -6,10 +6,11 @@
 export type PaymentMethod = "cash" | "card";
 export type PaymentStatus = "pending" | "paid" | "failed";
 
+// إعدادات الدفع اللي الموقع العام بيشوفها:
+// حالة التفعيل بس — مفتاح Paymob السرّي مش بيتحمّل في المتصفح خالص
+// (بيتعدّل من لوحة التحكم على الجدول المحمي restaurant_settings)
 export type PaymentSettings = {
   gatewayEnabled: boolean;
-  paymobApiKey: string;
-  paymobIntegrationId: string;
 };
 
 export function paymentMethodLabel(method: PaymentMethod): string {

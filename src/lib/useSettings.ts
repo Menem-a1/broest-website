@@ -2,6 +2,11 @@
 // ملف: useSettings.ts
 // الغرض: يجيب إعدادات المطعم (تليفون، واتساب، ساعات العمل)
 // من قاعدة البيانات بدل الملف الثابت restaurant.ts
+//
+// ⚠️ بتقرا من restaurant_settings_public (view عام) مش من
+// الجدول مباشرة — الجدول فيه paymob_api_key (مفتاح سرّي)
+// وبقى للأدمن بس. الـ view فيه أعمدة العرض العامة بس.
+// (supabase/migrations/0005_security_rls_hardening.sql)
 // =====================================================
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -40,8 +45,9 @@ export function useSettings() {
     let isMounted = true;
 
     async function fetchSettings() {
+      // من الـ view العام — الجدول نفسه بقى للأدمن بس عشان المفتاح السرّي
       const { data, error } = await supabase
-        .from("restaurant_settings")
+        .from("restaurant_settings_public")
         .select("*")
         .eq("id", 1)
         .single();

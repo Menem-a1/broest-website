@@ -25,12 +25,19 @@ export function InactiveCustomers() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data } = await supabase
-        .from("inactive_customers")
-        .select("*")
-        .gte("days_since_last_order", minDays)
-        .order("days_since_last_order", { ascending: false });
-      setCustomers(data || []);
+      // ⚠️ الأمان (المرحلة 3): القراءة بتبقى عن طريق دالة
+      // list_inactive_customers (RPC محمية بـ is_admin) بدل القراءة
+      // المباشرة من الجدول — الجدول ده فيه إيميلات عملاء فبقى
+      // للأدمن بس (supabase/migrations/0005_security_rls_hardening.sql)
+      const { data, error } = await supabase.rpc("list_inactive_customers", {
+        min_days: minDays,
+      });
+      if (!error) {
+        setCustomers(data || []);
+      } else {
+        console.error("فشل تحميل العملاء الغايبين:", error.message);
+        setCustomers([]);
+      }
       setLoading(false);
     }
     load();

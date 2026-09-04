@@ -10,6 +10,7 @@ import { useOrders } from "@/lib/useOrders";
 import { useOrderNotification } from "@/lib/useOrderNotification";
 import { useTabTitleAlert } from "@/lib/useTabTitleAlert";
 import { AdminErrorBoundary } from "@/pages/admin/AdminErrorBoundary";
+import { useFavicon } from "@/lib/useFavicon";
 import { LayoutGrid, UtensilsCrossed, Settings, LogOut, ExternalLink, ClipboardList, Image, MessageSquareText, Building2, Users, Truck, Percent, UserX, Menu, X, Tag, Heart } from "lucide-react";
 
 const navItems = [
@@ -30,6 +31,11 @@ const navItems = [
 
 export function AdminLayout() {
   const { signOut, role, roleLoading } = useAuth();
+  // فافيكون مختلف (رمز قفل) طول ما إنت جوه لوحة التحكم، عشان تفرّق
+  // بصريًا بين تاب لوحة التحكم وتاب الموقع العادي في المتصفح.
+  // الملف ده ثابت في public/admin-favicon.svg — تقدر تستبدله بأي
+  // صورة تانية بنفس الاسم لو عايز شكل مختلف
+  useFavicon("/admin-favicon.svg");
   const isDeveloper = role === "developer";
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   // لحد ما الدور يتحمل، منوريش أي عناصر مقصورة على developer

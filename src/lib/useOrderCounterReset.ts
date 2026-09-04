@@ -22,7 +22,9 @@ export function useOrderCounterReset(branchOpensAt: string | undefined) {
       return;
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    // بتاريخ القاهرة نفسه (مش UTC)، عشان "النهاردة" تتحسب صح بغض
+    // النظر عن توقيت السيرفر أو جهاز العميل
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Cairo" });
     const alreadyResetToday = data.last_reset_date === today;
     if (alreadyResetToday) {
       setLoading(false);
@@ -30,13 +32,17 @@ export function useOrderCounterReset(branchOpensAt: string | undefined) {
     }
 
     // بنقارن الوقت الحالي بوقت فتح الفرع، لو عدّينا وقت الفتح ولسه
-    // معملناش تصفير النهاردة، نصفّر تلقائي
+    // معملناش تصفير النهاردة، نصفّر تلقائي.
+    // بنستخدم توقيت القاهرة تحديدًا (مش توقيت جهاز العميل/المتصفح)،
+    // عشان لو حد فتح لوحة التحكم من بلد تانية أو جهاز بتوقيت مختلف،
+    // العداد ميتصفرش غلط في وقت خاطئ
     const [openHour, openMinute] = branchOpensAt.split(":").map(Number);
-    const now = new Date();
-    const opensToday = new Date(now);
+    const cairoNowStr = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+    const cairoNow = new Date(cairoNowStr);
+    const opensToday = new Date(cairoNow);
     opensToday.setHours(openHour, openMinute, 0, 0);
 
-    if (now >= opensToday) {
+    if (cairoNow >= opensToday) {
       await supabase.rpc("reset_order_counter");
     }
     setLoading(false);

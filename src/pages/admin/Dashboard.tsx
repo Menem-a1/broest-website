@@ -60,7 +60,7 @@ export function Dashboard() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-forest-deep">أهلاً بيك 👋</h1>
+      <h1 className="font-display text-2xl font-bold text-forest-deep">أهلاً بيك </h1>
       <p className="mt-1 text-sm text-muted-foreground">
         من هنا تقدر تعدّل على كل حاجة في موقع بروست بنفسك
       </p>

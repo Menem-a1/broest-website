@@ -135,7 +135,8 @@ export function CartDrawer() {
         address: fulfillmentType === "delivery" ? address.trim() : "",
       },
       paymentMethod,
-      fulfillment
+      fulfillment,
+      { customerUserId: session?.user?.id }
     );
     setSubmitting(false);
 

@@ -18,9 +18,7 @@ export function Offers() {
     // والأصناف المجانية بسعر صفر — كله بيتحط في السلة كأصناف عادية
     // باسم واضح إنها جزء من عرض، عشان يبان في تفاصيل الطلب
     const paidCount = offer.paidItems.reduce((sum, i) => sum + i.quantity, 0) || 1;
-    // floor مش round — عشان مجموع الوحدات عمره ما يعدّي سعر الباقة.
-    // والـ 1e-9 بيحمي من أخطاء الفاصلة العائمة (زي 8.2 * 100 = 819.9999999999999)
-    const pricePerPaidUnit = Math.floor((offer.bundlePrice / paidCount) * 100 + 1e-9) / 100;
+    const pricePerPaidUnit = offer.bundlePrice / paidCount;
 
     offer.paidItems.forEach((item) => {
       addRawLine({

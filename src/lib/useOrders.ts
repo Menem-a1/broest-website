@@ -77,7 +77,8 @@ export async function saveOrder(
   totalPrice: number,
   customer: CustomerInfo,
   paymentMethod: PaymentMethod = "cash",
-  fulfillment: FulfillmentInfo
+  fulfillment: FulfillmentInfo,
+  extras?: { customerUserId?: string }
 ) {
   const cooldown = checkOrderCooldown();
   if (!cooldown.allowed) {
@@ -102,25 +103,13 @@ export async function saveOrder(
   const deliveryPrice = fulfillment.type === "delivery" ? fulfillment.deliveryPrice : 0;
   const finalTotal = totalPrice + deliveryPrice;
 
-  // بندخل الطلب عن طريق دالة place_order في قاعدة البيانات
-  // (supabase/migrations/0003_place_order_rpc.sql) بدل ما نعمل
-  // .insert().select() مباشرة.
-  //
-  // السبب: PostgREST بيترجم .select() بعد الإدخال لـ INSERT ... RETURNING،
-  // و PostgreSQL بيطبّق سياسات الـ SELECT كمان على RETURNING. وبما إن
-  // الزوار مالهمش صلاحية قراءة على جدول orders (وده مقصود، عشان بيانات
-  // العملاء)، كان الإدخال بيفشل بـ:
-  //     new row violates row-level security policy for table "orders"
-  //
-  // الدالة SECURITY DEFINER فبتعدّي RLS من جوّه، والزائر محتاج صلاحية
-  // تنفيذ عليها بس — من غير أي وصول مباشر للجدول.
-  //
-  // كمان customer_user_id بقى بيتحدد جوه الدالة بـ auth.uid()،
-  // فالمتصفح مش قادر ينتحل هوية عميل تاني.
-  const { data, error } = await supabase.rpc("place_order", {
-    payload: {
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
       items,
       total_price: finalTotal,
+      order_channel: "website",
+      status: "new",
       customer_name: customer.name,
       customer_phone: customer.phone,
       customer_phone_2: customer.phone2 || "",
@@ -130,20 +119,20 @@ export async function saveOrder(
       delivery_price: deliveryPrice,
       pickup_branch_id: fulfillment.type === "pickup" ? fulfillment.branchId : null,
       payment_method: paymentMethod,
-    },
-  });
+      customer_user_id: extras?.customerUserId || null,
+      // الكاش بيتحسب "لسه مدفوعش" لحد ما يوصل ويتحصّل، والدفع الإلكتروني
+      // هيتحدّث لـ "paid" بعد نجاح المعاملة فعليًا من بوابة الدفع
+      payment_status: "pending",
+    })
+    .select("id, display_number")
+    .single();
 
   if (error) {
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
     return { success: false, orderId: null, displayNumber: null, errorMessage: error.message };
   }
   markOrderSent();
-  const row = data as { id: string | null; display_number: number | null } | null;
-  return {
-    success: true,
-    orderId: row?.id ?? null,
-    displayNumber: row?.display_number ?? null,
-  };
+  return { success: true, orderId: data?.id ?? null, displayNumber: data?.display_number ?? null };
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {

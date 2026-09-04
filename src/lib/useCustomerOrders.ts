@@ -12,9 +12,7 @@ export type CustomerOrder = {
   displayNumber: number | null;
   createdAt: string;
   status: OrderStatus;
-  // itemId موجود في الطلبات المتخزنة (saveOrder بيكتبه في useOrders.ts).
-  // اختياري في النوع لأن الطلبات القديمة جدًا ممكن متكونش موجودة فيه.
-  items: { itemId?: string; nameAr: string; size?: string; qty: number; unitPrice: number }[];
+  items: { nameAr: string; size?: string; qty: number; unitPrice: number }[];
   totalPrice: number;
   fulfillmentType: FulfillmentType;
   paymentMethod: PaymentMethod;

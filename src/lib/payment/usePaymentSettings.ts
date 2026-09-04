@@ -1,17 +1,8 @@
 // =====================================================
 // ملف: usePaymentSettings.ts
-// الغرض: يجيب حالة بوابة الدفع (مفعّلة ولا لأ) —
+// الغرض: يجيب إعدادات بوابة الدفع من قاعدة البيانات —
 // يستخدمه الموقع العام عشان يقرر يعرض خيار "دفع إلكتروني"
-// في السلة ولا لأ
-//
-// ⚠️ الأمان (المرحلة 3): الموقع العام بيقرا **حالة التفعيل بس**
-// من restaurant_settings_public (view عام من غير مفاتيح سرّية).
-// مفتاح Paymob (paymob_api_key) بقى للأدمن بس في جدول
-// restaurant_settings — قبل كده كان بيتحمّل في متصفح أي زائر
-// ويظهر في Network tab! (supabase/migrations/0005_security_rls_hardening.sql)
-//
-// لو حدستقبل هنحتاج نستخدم المفتاح فعليًا في الدفع، لازم يكون
-// في عملية سيرفر (Edge Function) مش في المتصفح.
+// ولا لأ، ولوحة التحكم عشان تفعّل/تعطّل البوابة
 // =====================================================
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -19,6 +10,8 @@ import type { PaymentSettings } from "./types";
 
 const FALLBACK: PaymentSettings = {
   gatewayEnabled: false,
+  paymobApiKey: "",
+  paymobIntegrationId: "",
 };
 
 export function usePaymentSettings() {
@@ -29,10 +22,9 @@ export function usePaymentSettings() {
     let isMounted = true;
 
     async function fetchSettings() {
-      // الـ view العام فيه payment_gateway_enabled بس من غير أي مفاتيح
       const { data, error } = await supabase
-        .from("restaurant_settings_public")
-        .select("payment_gateway_enabled")
+        .from("restaurant_settings")
+        .select("payment_gateway_enabled, paymob_api_key, paymob_integration_id")
         .eq("id", 1)
         .single();
 
@@ -41,6 +33,8 @@ export function usePaymentSettings() {
       if (!error && data) {
         setSettings({
           gatewayEnabled: data.payment_gateway_enabled,
+          paymobApiKey: data.paymob_api_key || "",
+          paymobIntegrationId: data.paymob_integration_id || "",
         });
       }
       setLoading(false);

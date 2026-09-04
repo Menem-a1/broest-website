@@ -5,7 +5,6 @@
 // =====================================================
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { cairoMinutesOfDay } from "@/lib/cairoTime";
 
 export type Branch = {
   id: string;
@@ -24,10 +23,11 @@ export type Branch = {
 // بتحسب هل الوقت الحالي بين وقت الفتح والقفل
 // بتتعامل مع الحالة اللي المطعم بيقفل بعد نص الليل (زي يقفل 02:00 يعني الساعة 2 بليل)
 export function isBranchOpenNow(opensAt: string, closesAt: string): boolean {
+  const now = new Date();
   const [openH, openM] = opensAt.split(":").map(Number);
   const [closeH, closeM] = closesAt.split(":").map(Number);
 
-  const nowMinutes = cairoMinutesOfDay();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const openMinutes = openH * 60 + openM;
   const closeMinutes = closeH * 60 + closeM;
 

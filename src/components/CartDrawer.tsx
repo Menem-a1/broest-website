@@ -165,7 +165,7 @@ export function CartDrawer() {
           <>
             {lines.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center text-muted-foreground">
-                <span className="text-4xl"></span>
+                <span className="text-4xl">🍗</span>
                 <p className="font-display text-lg">السلة فاضية</p>
                 <p className="text-sm">اختار وجبتك المفضلة من المنيو وابدأ الطلب</p>
               </div>

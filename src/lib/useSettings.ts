@@ -42,9 +42,7 @@ export function useSettings() {
     async function fetchSettings() {
       const { data, error } = await supabase
         .from("restaurant_settings")
-        .select(
-          "name_ar, phone_display, whatsapp_number, address_ar, hours_ar, avg_spend_ar, logo_url, favicon_url, estimated_delivery_minutes"
-        )
+        .select("*")
         .eq("id", 1)
         .single();
 

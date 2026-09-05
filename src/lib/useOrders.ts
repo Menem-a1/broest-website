@@ -103,33 +103,36 @@ export async function saveOrder(
   const deliveryPrice = fulfillment.type === "delivery" ? fulfillment.deliveryPrice : 0;
   const finalTotal = totalPrice + deliveryPrice;
 
-  const { data, error } = await supabase.rpc("place_order", {
-    payload: {
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
       items,
       total_price: finalTotal,
+      order_channel: "website",
+      status: "new",
       customer_name: customer.name,
       customer_phone: customer.phone,
       customer_phone_2: customer.phone2 || "",
       customer_address: customer.address,
       fulfillment_type: fulfillment.type,
-      delivery_zone_id: fulfillment.type === "delivery" ? fulfillment.zoneId : "",
+      delivery_zone_id: fulfillment.type === "delivery" ? fulfillment.zoneId : null,
       delivery_price: deliveryPrice,
-      pickup_branch_id: fulfillment.type === "pickup" ? fulfillment.branchId : "",
+      pickup_branch_id: fulfillment.type === "pickup" ? fulfillment.branchId : null,
       payment_method: paymentMethod,
-      customer_user_id: extras?.customerUserId || "",
-    },
-  });
+      customer_user_id: extras?.customerUserId || null,
+      // الكاش بيتحسب "لسه مدفوعش" لحد ما يوصل ويتحصّل، والدفع الإلكتروني
+      // هيتحدّث لـ "paid" بعد نجاح المعاملة فعليًا من بوابة الدفع
+      payment_status: "pending",
+    })
+    .select("id, display_number")
+    .single();
 
   if (error) {
     console.error("فشل حفظ الطلب في قاعدة البيانات:", error.message);
     return { success: false, orderId: null, displayNumber: null, errorMessage: error.message };
   }
   markOrderSent();
-  return {
-    success: true,
-    orderId: data?.id ?? null,
-    displayNumber: data?.display_number ?? null,
-  };
+  return { success: true, orderId: data?.id ?? null, displayNumber: data?.display_number ?? null };
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {

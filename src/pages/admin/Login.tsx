@@ -38,7 +38,7 @@ export function Login() {
             <Lock className="h-5 w-5" />
           </div>
           <h1 className="font-display text-2xl font-bold text-forest-deep">لوحة تحكم بروست</h1>
-          <p className="mt-1 text-sm text-muted-foreground">سجّل دخولك دلوقتي</p>
+          <p className="mt-1 text-sm text-muted-foreground">سجّل دخول عشان تعدّل على الموقع</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

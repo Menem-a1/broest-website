@@ -1,13 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { ShoppingBag, Menu, X, Phone, User } from "lucide-react";
+import { ShoppingBag, Menu, X, Phone, User, Heart } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSettings } from "@/lib/useSettings";
 import { useOffers } from "@/lib/useOffers";
-// معطّلين مؤقتًا مع نظام تسجيل الدخول (هيترجعوا لما نظام الواتساب يجهز):
-// import { useCustomerAuth } from "@/context/CustomerAuthContext";
-// import { useFavorites } from "@/lib/useFavorites";
-// import { Heart } from "lucide-react";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
+import { useFavorites } from "@/lib/useFavorites";
 
 const baseNavItems = [
   { to: "/", label: "الرئيسية" },
@@ -20,9 +18,8 @@ export function SiteHeader() {
   const { totalCount, setCartOpen } = useCart();
   const { settings } = useSettings();
   const { pageEnabled: offersEnabled } = useOffers();
-  // معطّلين مؤقتًا مع نظام تسجيل الدخول (هيترجعوا لما نظام الواتساب يجهز):
-  // const { session } = useCustomerAuth();
-  // const { favoriteIds } = useFavorites(session?.user?.id);
+  const { session } = useCustomerAuth();
+  const { favoriteIds } = useFavorites(session?.user?.id);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // رابط "العروض" بيظهر بس لو المطور فعّل صفحة العروض من لوحة التحكم
@@ -80,19 +77,28 @@ export function SiteHeader() {
             <Phone className="h-3.5 w-3.5" />
             {settings.phoneDisplay}
           </a>
-          {/* زرار "حسابي": نظام تسجيل الدخول الحالي (إيميل/باسورد) هيتستبدل
-              بنظام رقم تليفون + كود واتساب، فمؤقتًا الزرار ظاهر بس مقفول
-              وبيوري رسالة "قريبًا" بدل ما يودّي لصفحة تسجيل الدخول.
-              الكود والصفحات (CustomerAuthContext, Account.tsx) لسه
-              موجودين زي ما هم بالكامل، جاهزين يترجعوا شغالين تاني. */}
-          <button
-            type="button"
-            onClick={() => alert("تسجيل الدخول وحفظ الحساب هيتوفر قريبًا. تقدر تكمل طلبك عادي من غير تسجيل.")}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-cream/25 text-cream/50 transition-colors hover:border-fire hover:text-fire-light"
-            aria-label="حسابي (قريبًا)"
+          <NavLink
+            to="/account"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-cream/25 text-cream transition-colors hover:border-fire hover:text-fire-light"
+            aria-label="حسابي"
           >
             <User className="h-4.5 w-4.5" />
-          </button>
+            {session && (
+              <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-forest" />
+            )}
+          </NavLink>
+          {session && favoriteIds.size > 0 && (
+            <NavLink
+              to="/account?tab=favorites"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-cream/25 text-cream transition-colors hover:border-fire hover:text-fire-light md:flex"
+              aria-label="المفضلة"
+            >
+              <Heart className="h-4.5 w-4.5" />
+              <span className="absolute -top-1 -left-1 flex h-5 w-5 items-center justify-center rounded-full bg-chili text-[11px] font-bold text-cream">
+                {favoriteIds.size}
+              </span>
+            </NavLink>
+          )}
           <button
             onClick={() => setCartOpen(true)}
             className="relative flex h-10 w-10 items-center justify-center rounded-full bg-fire text-forest-deep transition-transform hover:scale-105"

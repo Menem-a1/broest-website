@@ -17,9 +17,9 @@ export function SiteFooter() {
   const primaryBranch = branches[0];
 
   const socialLinks = [
-    { url: footer.facebookUrl, icon: Globe, label: "فيسبوك" },
-    { url: footer.instagramUrl, icon: ImageIcon, label: "إنستجرام" },
-    { url: footer.whatsappUrl, icon: MessageCircle, label: "واتساب" },
+    { url: footer.facebookUrl, iconSrc: "/facebook-icon.svg", label: "فيسبوك" },
+    { url: footer.instagramUrl, iconSrc: "/instagram-icon.svg", label: "إنستجرام" },
+    { url: footer.whatsappUrl, iconSrc: "/whatsapp-icon.svg", label: "واتساب" },
   ].filter((s) => s.url.trim() !== "");
 
   return (

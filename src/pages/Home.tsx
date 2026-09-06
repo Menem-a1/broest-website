@@ -15,7 +15,7 @@ export function Home() {
   const { settings } = useSettings();
   const { branches } = useBranches();
   const { menu } = useMenu();
-  const { content } = useHomeContent();
+  const { content, loading: contentLoading } = useHomeContent();
   // الأصناف دي بتتحدد من لوحة التحكم → "مفضلة العملاء"، مش ثابتة في الكود
   const { items: featured } = useCuratedFavorites(menu);
   const primaryBranch = branches[0];
@@ -29,17 +29,28 @@ export function Home() {
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-24 lg:px-8">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-fire/15 px-3 py-1 text-xs font-semibold text-fire-light">
-              <Flame className="h-3.5 w-3.5" /> {content.heroBadgeText}
-            </span>
-            <h1 className="mt-4 font-display text-4xl font-bold leading-[1.1] text-cream sm:text-5xl lg:text-6xl">
-              {content.heroTitleLine1}
-              <br />
-              <span className="text-fire">{content.heroTitleLine2}</span>
-            </h1>
-            <p className="mt-5 max-w-md text-base leading-relaxed text-cream/70">
-              {content.heroDescription}
-            </p>
+            {contentLoading ? (
+              <div className="space-y-4">
+                <div className="h-6 w-64 animate-pulse rounded-full bg-cream/10" />
+                <div className="h-12 w-80 animate-pulse rounded-lg bg-cream/10" />
+                <div className="h-12 w-56 animate-pulse rounded-lg bg-cream/10" />
+                <div className="h-5 w-72 animate-pulse rounded-lg bg-cream/10" />
+              </div>
+            ) : (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-fire/15 px-3 py-1 text-xs font-semibold text-fire-light">
+                  <Flame className="h-3.5 w-3.5" /> {content.heroBadgeText}
+                </span>
+                <h1 className="mt-4 font-display text-4xl font-bold leading-[1.1] text-cream sm:text-5xl lg:text-6xl">
+                  {content.heroTitleLine1}
+                  <br />
+                  <span className="text-fire">{content.heroTitleLine2}</span>
+                </h1>
+                <p className="mt-5 max-w-md text-base leading-relaxed text-cream/70">
+                  {content.heroDescription}
+                </p>
+              </>
+            )}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/menu"
@@ -75,7 +86,9 @@ export function Home() {
           </div>
 
           <div className="relative mx-auto flex h-72 w-72 items-center justify-center lg:h-96 lg:w-96">
-            {content.heroImageUrl ? (
+            {contentLoading ? (
+              <div className="h-full w-full animate-pulse rounded-3xl bg-cream/10" />
+            ) : content.heroImageUrl ? (
               <div className="h-full w-full overflow-hidden rounded-3xl">
                 <img
                   src={content.heroImageUrl}
@@ -148,17 +161,25 @@ export function Home() {
       {/* WHY US */}
       <section className="bg-forest-deep px-4 py-16 md:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
-          {[
-            { title: content.whyUsTitle1, desc: content.whyUsDesc1 },
-            { title: content.whyUsTitle2, desc: content.whyUsDesc2 },
-            { title: content.whyUsTitle3, desc: content.whyUsDesc3 },
-          ].map((f, i) => (
-            <div key={i} className="rounded-xl border border-cream/10 p-6">
-              <span className="font-display text-3xl font-bold text-fire">0{i + 1}</span>
-              <h3 className="mt-3 font-display text-lg font-semibold text-cream">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-cream/60">{f.desc}</p>
-            </div>
-          ))}
+          {contentLoading
+            ? [0, 1, 2].map((i) => (
+                <div key={i} className="rounded-xl border border-cream/10 p-6">
+                  <div className="h-8 w-8 animate-pulse rounded bg-cream/10" />
+                  <div className="mt-3 h-5 w-32 animate-pulse rounded bg-cream/10" />
+                  <div className="mt-2 h-4 w-full animate-pulse rounded bg-cream/10" />
+                </div>
+              ))
+            : [
+                { title: content.whyUsTitle1, desc: content.whyUsDesc1 },
+                { title: content.whyUsTitle2, desc: content.whyUsDesc2 },
+                { title: content.whyUsTitle3, desc: content.whyUsDesc3 },
+              ].map((f, i) => (
+                <div key={i} className="rounded-xl border border-cream/10 p-6">
+                  <span className="font-display text-3xl font-bold text-fire">0{i + 1}</span>
+                  <h3 className="mt-3 font-display text-lg font-semibold text-cream">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-cream/60">{f.desc}</p>
+                </div>
+              ))}
         </div>
       </section>
     </div>

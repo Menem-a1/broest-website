@@ -20,14 +20,28 @@ export type Branch = {
   isActive: boolean;
 };
 
+// بترجع عدد الدقايق من منتصف الليل بتوقيت القاهرة، بغض النظر عن توقيت
+// جهاز العميل نفسه (عشان مواعيد الفتح/القفل تتحسب صح لأي زائر من أي مكان)
+function getCairoMinutesNow(): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Cairo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return hour * 60 + minute;
+}
+
 // بتحسب هل الوقت الحالي بين وقت الفتح والقفل
 // بتتعامل مع الحالة اللي المطعم بيقفل بعد نص الليل (زي يقفل 02:00 يعني الساعة 2 بليل)
 export function isBranchOpenNow(opensAt: string, closesAt: string): boolean {
-  const now = new Date();
   const [openH, openM] = opensAt.split(":").map(Number);
   const [closeH, closeM] = closesAt.split(":").map(Number);
 
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const nowMinutes = getCairoMinutesNow();
   const openMinutes = openH * 60 + openM;
   const closeMinutes = closeH * 60 + closeM;
 

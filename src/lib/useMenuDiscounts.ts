@@ -11,9 +11,9 @@ type DbDiscount = {
   is_active: boolean;
 };
 
-export function useMenuDiscounts() {
+export function useMenuDiscounts(enabled: boolean = true) {
   const [discounts, setDiscounts] = useState<DbDiscount[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
 
   async function fetchDiscounts() {
     const { data } = await supabase.from("menu_discounts").select("*").eq("is_active", true);
@@ -22,8 +22,13 @@ export function useMenuDiscounts() {
   }
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
     fetchDiscounts();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
 
   // بترجع السعر بعد الخصم لصنف معين، أو نفس السعر لو مفيش خصم عليه
   // لو فيه أكتر من خصم منطبق، بناخد الأقوى (الأرخص للعميل)

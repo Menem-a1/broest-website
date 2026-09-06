@@ -6,11 +6,30 @@ import { useFavorites } from "@/lib/useFavorites";
 import { useMenuDiscounts } from "@/lib/useMenuDiscounts";
 import { Plus, Check, Heart } from "lucide-react";
 
-export function MenuItemCard({ item, disabled = false }: { item: MenuItem; disabled?: boolean }) {
+// favoriteIds/toggleFavorite/applyDiscount اختيارية: لو الصفحة الأب (زي Menu.tsx)
+// بتنادي useFavorites و useMenuDiscounts مرة واحدة وبتبعتهم هنا، منستخدمش نسخة
+// تانية من نفس الهوك لكل كارت (كان بيعمل استعلام مكرر لكل صنف في المنيو).
+// لو محدش بعتهم (زي في Home.tsx)، بترجع لنفس السلوك القديم تلقائيًا.
+export function MenuItemCard({
+  item,
+  disabled = false,
+  favoriteIds: favoriteIdsProp,
+  toggleFavorite: toggleFavoriteProp,
+  applyDiscount: applyDiscountProp,
+}: {
+  item: MenuItem;
+  disabled?: boolean;
+  favoriteIds?: Set<string>;
+  toggleFavorite?: (itemId: string) => void;
+  applyDiscount?: (itemId: string, categoryId: string, price: number) => number;
+}) {
   const { addItem } = useCart();
   const { session } = useCustomerAuth();
-  const { favoriteIds, toggleFavorite } = useFavorites(session?.user?.id);
-  const { applyDiscount } = useMenuDiscounts();
+  const ownFavorites = useFavorites(favoriteIdsProp ? undefined : session?.user?.id);
+  const ownDiscounts = useMenuDiscounts(!applyDiscountProp);
+  const favoriteIds = favoriteIdsProp ?? ownFavorites.favoriteIds;
+  const toggleFavorite = toggleFavoriteProp ?? ownFavorites.toggleFavorite;
+  const applyDiscount = applyDiscountProp ?? ownDiscounts.applyDiscount;
   const [selectedSize, setSelectedSize] = useState(item.sizes ? item.sizes[0] : undefined);
   const [justAdded, setJustAdded] = useState(false);
 

@@ -16,6 +16,7 @@ import { Offers } from "@/pages/Offers";
 import { Account } from "@/pages/Account";
 import { About } from "@/pages/About";
 import { Contact } from "@/pages/Contact";
+import { NotFound } from "@/pages/NotFound";
 import { Login } from "@/pages/admin/Login";
 import { RequireAuth, RequireDeveloper } from "@/pages/admin/RequireAuth";
 import { Loader2 } from "lucide-react";
@@ -95,6 +96,7 @@ function PublicSite() {
               <Route path="/account" element={<Account />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <SiteFooter />

@@ -208,8 +208,16 @@ export function useOrders() {
       )
       .subscribe();
 
+    // تحديث احتياطي كل 20 ثانية، عشان لو الاتصال اللحظي (Realtime) اتقطع
+    // لأي سبب (شبكة ضعيفة، التاب فاضل مفتوح فترة طويلة)، الطلبات الجديدة
+    // تفضل تظهر تلقائي من غير ما نحتاج نحدّث الصفحة يدويًا
+    const pollInterval = setInterval(() => {
+      fetchOrders();
+    }, 20_000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, []);
 

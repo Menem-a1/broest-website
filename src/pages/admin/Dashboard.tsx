@@ -9,8 +9,9 @@ import { useAuth } from "@/context/AuthContext";
 import { UtensilsCrossed, Settings, ArrowLeft, ClipboardList, Volume2 } from "lucide-react";
 
 export function Dashboard() {
-  const { role } = useAuth();
+  const { role, session } = useAuth();
   const isDeveloper = role === "developer";
+  const displayName = session?.user?.email?.split("@")[0] ?? "";
   const [itemCount, setItemCount] = useState<number | null>(null);
   const [categoryCount, setCategoryCount] = useState<number | null>(null);
   const [newOrdersCount, setNewOrdersCount] = useState<number | null>(null);
@@ -60,7 +61,9 @@ export function Dashboard() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-forest-deep">أهلاً بيك 👋</h1>
+      <h1 className="font-display text-2xl font-bold text-forest-deep">
+        أهلاً بيك{displayName ? ` يا ${displayName}` : ""} 👋
+      </h1>
       <p className="mt-1 text-sm text-muted-foreground">
         من هنا تقدر تعدّل على كل حاجة في موقع بروست بنفسك
       </p>

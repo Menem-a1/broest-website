@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useMenu } from "@/lib/useMenu";
 import { useBranches, isBranchOpenNow } from "@/lib/useBranches";
+import { useFavorites } from "@/lib/useFavorites";
+import { useMenuDiscounts } from "@/lib/useMenuDiscounts";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 import { MenuItemCard } from "@/components/MenuItemCard";
 import { ClosedBanner } from "@/components/ClosedBanner";
 import { Loader2 } from "lucide-react";
@@ -8,7 +11,14 @@ import { Loader2 } from "lucide-react";
 export function Menu() {
   const { categories, menu, loading, error } = useMenu();
   const { branches } = useBranches();
+  const { session } = useCustomerAuth();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // بنجيب المفضلة والخصومات مرة واحدة هنا فوق، وبنبعتهم لكل كارت كـ props،
+  // بدل ما كل كارت في المنيو (ممكن يكونوا 60 صنف) ينادي نفس الاستعلامات
+  // لوحده — ده كان بيعمل عشرات الاستعلامات المكررة لنفس البيانات بالظبط
+  const { favoriteIds, toggleFavorite } = useFavorites(session?.user?.id);
+  const { applyDiscount } = useMenuDiscounts();
 
   // بنعتبر المطعم مفتوح لو أي فرع فيهم مفتوح دلوقتي
   // (لو عندك فرع واحد بس، ده بيبقى نفس السلوك القديم بالظبط)
@@ -84,7 +94,14 @@ export function Menu() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
-                <MenuItemCard key={item.id} item={item} disabled={!isOpen} />
+                <MenuItemCard
+                  key={item.id}
+                  item={item}
+                  disabled={!isOpen}
+                  favoriteIds={favoriteIds}
+                  toggleFavorite={toggleFavorite}
+                  applyDiscount={applyDiscount}
+                />
               ))}
             </div>
           )}

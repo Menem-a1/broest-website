@@ -18,7 +18,7 @@ export function Offers() {
     // والأصناف المجانية بسعر صفر — كله بيتحط في السلة كأصناف عادية
     // باسم واضح إنها جزء من عرض، عشان يبان في تفاصيل الطلب
     const paidCount = offer.paidItems.reduce((sum, i) => sum + i.quantity, 0) || 1;
-    const pricePerPaidUnit = offer.bundlePrice / paidCount;
+    const pricePerPaidUnit = Math.round(offer.bundlePrice / paidCount);
 
     offer.paidItems.forEach((item) => {
       addRawLine({

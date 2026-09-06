@@ -12,7 +12,7 @@ export type CustomerOrder = {
   displayNumber: number | null;
   createdAt: string;
   status: OrderStatus;
-  items: { nameAr: string; size?: string; qty: number; unitPrice: number }[];
+  items: { itemId?: string; nameAr: string; size?: string; qty: number; unitPrice: number }[];
   totalPrice: number;
   fulfillmentType: FulfillmentType;
   paymentMethod: PaymentMethod;

@@ -534,25 +534,25 @@ export function CartDrawer() {
             </div>
           </div>
         )}
-      </SheetContent>
 
-      {showSavedAddresses && (
-        <SavedAddressesModal
-          isLoggedIn={!!session}
-          addresses={savedAddresses}
-          onSelect={(zoneId, detail) => {
-            setSelectedZoneId(zoneId);
-            setAddress(detail);
-            setShowSavedAddresses(false);
-          }}
-          onClose={() => setShowSavedAddresses(false)}
-          onGoToSignup={() => {
-            setShowSavedAddresses(false);
-            setCartOpen(false);
-            navigate("/account");
-          }}
-        />
-      )}
+        {showSavedAddresses && (
+          <SavedAddressesModal
+            isLoggedIn={!!session}
+            addresses={savedAddresses}
+            onSelect={(zoneId, detail) => {
+              setSelectedZoneId(zoneId);
+              setAddress(detail);
+              setShowSavedAddresses(false);
+            }}
+            onClose={() => setShowSavedAddresses(false)}
+            onGoToSignup={() => {
+              setShowSavedAddresses(false);
+              setCartOpen(false);
+              navigate("/account");
+            }}
+          />
+        )}
+      </SheetContent>
     </Sheet>
   );
 }

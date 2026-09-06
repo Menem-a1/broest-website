@@ -1,32 +1,38 @@
-# React + TypeScript + Vite
+# بروست (Broest)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+موقع طلبات أونلاين لمطعم بروست في الإسكندرية — قائمة طعام، سلة طلبات،
+توصيل أو استلام من الفرع، ودفع كاش أو أونلاين، مع لوحة تحكم كاملة لصاحب
+المطعم يقدر من خلالها يعدّل كل حاجة في الموقع بنفسه من غير أي كود.
 
-Currently, two official plugins are available:
+## المكونات الأساسية
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **الواجهة:** React + TypeScript + Vite + Tailwind CSS
+- **قاعدة البيانات:** Supabase (Postgres + Row Level Security + Realtime)
+- **الاستضافة:** Vercel (نشر تلقائي مع كل تحديث على GitHub)
+- **التنقل بين الصفحات:** HashRouter (يشتغل على أي استضافة من غير إعدادات سيرفر إضافية)
 
-## React Compiler
+## لوحة التحكم
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+متاحة على `/#/admin` بعد تسجيل الدخول، وبتغطي:
 
-## Expanding the Oxlint configuration
+- المنيو والأقسام والأسعار والأحجام والعروض والخصومات
+- الطلبات (لحظة بلحظة، مع فلتر تاريخ وتصدير CSV)
+- الفروع (مواعيد الفتح/القفل، العنوان، رابط خرائط جوجل)
+- محتوى الصفحة الرئيسية، التقييمات، إعدادات الموقع العامة
+- رفع الصور (المنيو، اللوجو، الأيقونة)
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## التشغيل محليًا
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm install
+pnpm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## البناء للنشر
+
+```bash
+pnpm run build
+```
+
+لازم البناء ده ينجح بالكامل قبل أي نشر — فحص الأنواع (`tsc`) وحده مش كافي
+للتأكد من سلامة الكود.

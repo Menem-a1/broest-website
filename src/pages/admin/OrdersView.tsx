@@ -25,6 +25,22 @@ import {
   RotateCcw,
 } from "lucide-react";
 
+// بترجع تاريخ الطلب بصيغة YYYY-MM-DD بتوقيت القاهرة (مش UTC)، عشان فلتر
+// التاريخ يتطابق مع اليوم الفعلي في مصر مش اليوم بتوقيت جرينتش
+function toCairoDateString(isoString: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Cairo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(isoString));
+
+  const year = parts.find((p) => p.type === "year")?.value ?? "0000";
+  const month = parts.find((p) => p.type === "month")?.value ?? "00";
+  const day = parts.find((p) => p.type === "day")?.value ?? "00";
+  return `${year}-${month}-${day}`;
+}
+
 const STATUS_STYLES: Record<OrderStatus, { active: string; idle: string }> = {
   new: {
     active: "bg-fire text-white border-fire",
@@ -113,7 +129,7 @@ export function OrdersView() {
   // الطلبات المفلترة حسب التاريخ (لو المطور اختار مدى زمني)، مرتبة الأحدث الأول
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
-      const orderDate = o.createdAt.slice(0, 10);
+      const orderDate = toCairoDateString(o.createdAt);
       if (dateFrom && orderDate < dateFrom) return false;
       if (dateTo && orderDate > dateTo) return false;
       return true;

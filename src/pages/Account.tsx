@@ -15,6 +15,7 @@ import { useMenu } from "@/lib/useMenu";
 import { useCart } from "@/context/CartContext";
 import { statusLabel } from "@/lib/useOrders";
 import { supabase } from "@/lib/supabase";
+import { useMenuDiscounts } from "@/lib/useMenuDiscounts";
 import {
   LogOut,
   Loader2,
@@ -215,7 +216,7 @@ function OrdersTab({ userId, onReorder }: { userId: string; onReorder: () => voi
   function handleReorder(order: (typeof orders)[number]) {
     order.items.forEach((item) => {
       addRawLine({
-        itemId: item.nameAr, // مفيش item_id متخزن في الطلب القديم، فبنستخدم الاسم كمفتاح فريد كافي هنا
+        itemId: item.itemId || item.nameAr, // نستخدم كود الصنف الحقيقي لو موجود، ولو الطلب قديم وماعندوش نرجع للاسم كحل احتياطي
         nameAr: item.nameAr,
         size: item.size,
         unitPrice: item.unitPrice,
@@ -384,6 +385,7 @@ function ReviewForm({
 function FavoritesTab({ userId }: { userId: string }) {
   const { menu, loading: menuLoading } = useMenu();
   const { addItem } = useCart();
+  const { applyDiscount } = useMenuDiscounts();
   const [favIds, setFavIds] = useState<Set<string>>(new Set());
   const [loadingFavs, setLoadingFavs] = useState(true);
 
@@ -425,24 +427,35 @@ function FavoritesTab({ userId }: { userId: string }) {
 
   return (
     <div className="grid gap-3 md:grid-cols-2">
-      {favoriteItems.map((item) => (
-        <div
-          key={item.id}
-          className="flex items-center justify-between gap-3 rounded-xl border border-forest/10 bg-white p-4"
-        >
-          <div>
-            <p className="font-display text-sm font-semibold text-forest-deep">{item.nameAr}</p>
-            <p className="font-price text-sm text-fire">{item.price} ج.م</p>
-          </div>
-          <button
-            onClick={() => addItem(item)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-forest text-cream hover:bg-fire"
-            aria-label="أضف للسلة"
+      {favoriteItems.map((item) => {
+        const discountedPrice = applyDiscount(item.id, item.category, item.price);
+        const hasDiscount = discountedPrice < item.price;
+        return (
+          <div
+            key={item.id}
+            className="flex items-center justify-between gap-3 rounded-xl border border-forest/10 bg-white p-4"
           >
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-      ))}
+            <div>
+              <p className="font-display text-sm font-semibold text-forest-deep">{item.nameAr}</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-price text-sm text-fire">{discountedPrice} ج.م</span>
+                {hasDiscount && (
+                  <span className="font-price text-xs text-muted-foreground line-through">
+                    {item.price} ج.م
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => addItem(item, undefined, discountedPrice)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-forest text-cream hover:bg-fire"
+              aria-label="أضف للسلة"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

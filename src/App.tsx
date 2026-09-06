@@ -11,13 +11,17 @@ import { PublicErrorBoundary } from "@/components/PublicErrorBoundary";
 import { useSettings } from "@/lib/useSettings";
 import { useFavicon } from "@/lib/useFavicon";
 import { Home } from "@/pages/Home";
-import { Menu } from "@/pages/Menu";
-import { Offers } from "@/pages/Offers";
-import { Account } from "@/pages/Account";
-import { About } from "@/pages/About";
-import { Contact } from "@/pages/Contact";
-import { NotFound } from "@/pages/NotFound";
-import { Login } from "@/pages/admin/Login";
+
+// الصفحات دي مش لازم تتحمل مع أول زيارة للموقع — بس الصفحة الرئيسية (Home)
+// هي اللي محتاجة تتحمل فورًا، والباقي يتحمل بس لما العميل يدوس عليه فعليًا
+const Menu = lazy(() => import("@/pages/Menu").then((m) => ({ default: m.Menu })));
+const Offers = lazy(() => import("@/pages/Offers").then((m) => ({ default: m.Offers })));
+const Account = lazy(() => import("@/pages/Account").then((m) => ({ default: m.Account })));
+const About = lazy(() => import("@/pages/About").then((m) => ({ default: m.About })));
+const Contact = lazy(() => import("@/pages/Contact").then((m) => ({ default: m.Contact })));
+const NotFound = lazy(() => import("@/pages/NotFound").then((m) => ({ default: m.NotFound })));
+const Login = lazy(() => import("@/pages/admin/Login").then((m) => ({ default: m.Login })));
+
 import { RequireAuth, RequireDeveloper } from "@/pages/admin/RequireAuth";
 import { Loader2 } from "lucide-react";
 
@@ -89,15 +93,17 @@ function PublicSite() {
         <div className="flex min-h-screen flex-col" dir="rtl">
           <SiteHeader />
           <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/menu" element={<Menu />} />
-              <Route path="/offers" element={<Offers />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/menu" element={<Menu />} />
+                <Route path="/offers" element={<Offers />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </main>
           <SiteFooter />
           <CartDrawer />
@@ -115,7 +121,14 @@ function App() {
         <HashRouter>
           <Routes>
             {/* تسجيل الدخول للوحة التحكم */}
-            <Route path="/admin/login" element={<Login />} />
+            <Route
+              path="/admin/login"
+              element={
+                <Suspense fallback={<AdminLoadingFallback />}>
+                  <Login />
+                </Suspense>
+              }
+            />
 
             {/* لوحة التحكم — محمية بتسجيل الدخول */}
             <Route

@@ -2,7 +2,7 @@ import { useSettings } from "@/lib/useSettings";
 import { useBranches, formatHoursAr } from "@/lib/useBranches";
 import { useFooterSettings } from "@/lib/useFooterSettings";
 import { Link } from "react-router-dom";
-import { Phone, MapPin, Clock, Globe, Image as ImageIcon, MessageCircle } from "lucide-react";
+import { Phone, MapPin, Clock } from "lucide-react";
 
 // دي قيم تسويقية بسيطة مش محتاجة تتعدل باستمرار، فسايبينها هنا
 // (لو حبيت تضيفها للوحة التحكم بعدين، سهل تتنقل لجدول restaurant_settings)
@@ -41,7 +41,7 @@ export function SiteFooter() {
                   aria-label={s.label}
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/10 transition-colors hover:bg-fire hover:text-forest-deep"
                 >
-                  <s.icon className="h-4 w-4" />
+                  <img src={s.iconSrc} alt={s.label} className="h-4 w-4" />
                 </a>
               ))}
             </div>

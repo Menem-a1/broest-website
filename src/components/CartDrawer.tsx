@@ -572,10 +572,18 @@ function SavedAddressesModal({
   onGoToSignup: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       <div
         className="w-full max-w-sm rounded-xl bg-white p-5"
         onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {!isLoggedIn ? (
           <div className="text-center">
@@ -587,13 +595,21 @@ function SavedAddressesModal({
             </p>
             <div className="mt-4 flex gap-2">
               <button
-                onClick={onGoToSignup}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onGoToSignup();
+                }}
                 className="flex-1 rounded-full bg-forest py-2.5 text-sm font-bold text-cream"
               >
                 تسجيل / دخول
               </button>
               <button
-                onClick={onClose}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
                 className="flex-1 rounded-full border border-forest/20 py-2.5 text-sm font-bold text-forest-deep"
               >
                 لأ، شكرًا
@@ -609,7 +625,11 @@ function SavedAddressesModal({
               تقدر تضيف عنوان من صفحة "حسابك" بعد ما تخلص الطلب ده
             </p>
             <button
-              onClick={onClose}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className="mt-4 rounded-full bg-forest px-6 py-2.5 text-sm font-bold text-cream"
             >
               تمام
@@ -623,8 +643,12 @@ function SavedAddressesModal({
             <div className="flex flex-col gap-2">
               {addresses.map((a) => (
                 <button
+                  type="button"
                   key={a.id}
-                  onClick={() => onSelect(a.deliveryZoneId || "", a.addressDetail)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(a.deliveryZoneId || "", a.addressDetail);
+                  }}
                   className="rounded-lg border border-forest/15 p-3 text-right hover:border-fire"
                 >
                   <p className="text-sm font-bold text-forest-deep">{a.label}</p>

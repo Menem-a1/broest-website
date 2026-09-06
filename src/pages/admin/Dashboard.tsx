@@ -35,12 +35,16 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
-    async function fetchCounts() {
+    async function fetchNewOrdersCount() {
       const { count: newOrders } = await supabase
         .from("orders")
         .select("*", { count: "exact", head: true })
         .eq("status", "new");
       setNewOrdersCount(newOrders ?? 0);
+    }
+
+    async function fetchCounts() {
+      await fetchNewOrdersCount();
 
       // إحصائيات المنيو والأقسام مخصوصة بـ developer بس (owner أصلاً محجوب عنه
       // جدول menu_items بحماية قاعدة البيانات، فمفيش داعي نطلبها له)
@@ -56,6 +60,32 @@ export function Dashboard() {
       }
     }
     fetchCounts();
+
+    // عداد "طلب جديد" لازم يتحدث تلقائي أول ما حالة أي طلب تتغير (مثلاً
+    // لما يتحول لـ"جاري التحضير")، مش بس لما الصفحة تتفتح من الأول.
+    // بنستخدم اسم قناة فريد عشان لو الصفحة دي وصفحة الطلبات مفتوحين
+    // مع بعض، الاشتراكات ميتعارضوش.
+    const channelName = `dashboard-new-orders-${Math.random().toString(36).slice(2)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        () => {
+          fetchNewOrdersCount();
+        }
+      )
+      .subscribe();
+
+    // تحديث احتياطي كل 15 ثانية، عشان لو الاتصال اللحظي اتقطع لأي سبب
+    const pollInterval = setInterval(() => {
+      fetchNewOrdersCount();
+    }, 15_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDeveloper]);
 

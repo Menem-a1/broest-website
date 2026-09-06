@@ -25,11 +25,7 @@ export function InactiveCustomers() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data } = await supabase
-        .from("inactive_customers")
-        .select("*")
-        .gte("days_since_last_order", minDays)
-        .order("days_since_last_order", { ascending: false });
+      const { data } = await supabase.rpc("list_inactive_customers", { min_days: minDays });
       setCustomers(data || []);
       setLoading(false);
     }

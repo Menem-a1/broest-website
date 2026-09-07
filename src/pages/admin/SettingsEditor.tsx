@@ -20,12 +20,19 @@ type Settings = {
   favicon_url: string | null;
   estimated_delivery_minutes: number;
   payment_gateway_enabled: boolean;
+};
+
+type PaymentSecrets = {
   paymob_api_key: string;
   paymob_integration_id: string;
 };
 
 export function SettingsEditor() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [secrets, setSecrets] = useState<PaymentSecrets>({
+    paymob_api_key: "",
+    paymob_integration_id: "",
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -38,6 +45,21 @@ export function SettingsEditor() {
         .eq("id", 1)
         .single();
       if (data) setSettings(data);
+
+      // بيانات Paymob محفوظة في جدول منفصل ومحمي (payment_secrets)،
+      // مش في restaurant_settings — عشان محدش يقدر يشوفها إلا المطور
+      const { data: secretsData } = await supabase
+        .from("payment_secrets")
+        .select("paymob_api_key, paymob_integration_id")
+        .eq("id", 1)
+        .maybeSingle();
+      if (secretsData) {
+        setSecrets({
+          paymob_api_key: secretsData.paymob_api_key || "",
+          paymob_integration_id: secretsData.paymob_integration_id || "",
+        });
+      }
+
       setLoading(false);
     }
     load();
@@ -46,12 +68,19 @@ export function SettingsEditor() {
   async function handleSave() {
     if (!settings) return;
     setSaving(true);
-    const { error } = await supabase
+    const { error: settingsError } = await supabase
       .from("restaurant_settings")
       .update(settings)
       .eq("id", 1);
+
+    // بيانات Paymob بتتحفظ في جدولها المنفصل، عن طريق upsert عشان لو الصف
+    // مش موجود أصلاً في payment_secrets (أول مرة) يتعمل مش يفشل
+    const { error: secretsError } = await supabase
+      .from("payment_secrets")
+      .upsert({ id: 1, ...secrets });
+
     setSaving(false);
-    if (!error) {
+    if (!settingsError && !secretsError) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } else {
@@ -76,7 +105,7 @@ export function SettingsEditor() {
     );
   }
 
-  const fields: { key: keyof Omit<Settings, "logo_url" | "favicon_url" | "payment_gateway_enabled" | "paymob_api_key" | "paymob_integration_id">; label: string; hint?: string; dir?: string }[] = [
+  const fields: { key: keyof Omit<Settings, "logo_url" | "favicon_url" | "payment_gateway_enabled">; label: string; hint?: string; dir?: string }[] = [
     { key: "name_ar", label: "اسم المطعم" },
     { key: "phone_display", label: "رقم التليفون (اللي بيظهر للعملاء)", hint: "مثال: 0120 259 4444" },
     {
@@ -221,9 +250,9 @@ export function SettingsEditor() {
             </label>
             <input
               type="password"
-              value={settings.paymob_api_key}
+              value={secrets.paymob_api_key}
               onChange={(e) =>
-                setSettings((prev) => (prev ? { ...prev, paymob_api_key: e.target.value } : prev))
+                setSecrets((prev) => ({ ...prev, paymob_api_key: e.target.value }))
               }
               className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
               dir="ltr"
@@ -235,11 +264,9 @@ export function SettingsEditor() {
               Integration ID
             </label>
             <input
-              value={settings.paymob_integration_id}
+              value={secrets.paymob_integration_id}
               onChange={(e) =>
-                setSettings((prev) =>
-                  prev ? { ...prev, paymob_integration_id: e.target.value } : prev
-                )
+                setSecrets((prev) => ({ ...prev, paymob_integration_id: e.target.value }))
               }
               className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
               dir="ltr"

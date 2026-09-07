@@ -363,6 +363,11 @@ export function OrdersView() {
                     {paymentStatusLabel(order.paymentStatus)}
                   </span>
                 </div>
+                {order.paymentMethod === "card" && order.paymentStatus === "paid" && (
+                  <span className="flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                    <CreditCard className="h-3.5 w-3.5" /> دفع فيزا اتأكد ✓
+                  </span>
+                )}
               </div>
 
               <ul className="mt-3 flex flex-col gap-1 border-t border-forest/10 pt-3">

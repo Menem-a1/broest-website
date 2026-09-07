@@ -27,9 +27,9 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-3">
         <div>
           <h3 className="font-display text-2xl font-bold text-cream">{settings.nameAr}</h3>
-          <Link to="/admin" className="mt-2 block max-w-xs text-sm leading-relaxed text-cream/60 transition-colors hover:text-cream/90">
+          <p className="mt-2 max-w-xs text-sm leading-relaxed text-cream/60">
             {TAGLINE_AR}
-          </Link>
+          </p>
           {socialLinks.length > 0 && (
             <div className="mt-4 flex gap-3">
               {socialLinks.map((s) => (

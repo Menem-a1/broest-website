@@ -23,6 +23,8 @@ import {
   Download,
   Hash,
   RotateCcw,
+  Truck,
+  Store,
 } from "lucide-react";
 
 // بترجع تاريخ الطلب بصيغة YYYY-MM-DD بتوقيت القاهرة (مش UTC)، عشان فلتر
@@ -125,6 +127,22 @@ export function OrdersView() {
   );
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  // بنحفظ هنا حالة الدفع اللي كانت قبل ما ندوس "اتحصّل"، عشان لو حصل
+  // دوس بالغلط نقدر نرجعها لنفس الحالة القديمة بالظبط مش لحالة عشوائية
+  const [previousPaymentStatus, setPreviousPaymentStatus] = useState<
+    Record<string, Order["paymentStatus"]>
+  >({});
+
+  function markPaid(orderId: string, currentStatus: Order["paymentStatus"]) {
+    setPreviousPaymentStatus((prev) => ({ ...prev, [orderId]: currentStatus }));
+    updatePaymentStatus(orderId, "paid");
+  }
+
+  function undoPaid(orderId: string) {
+    if (!confirm("متأكد إنك عايز تلغي إن الطلب ده اتحصّل؟")) return;
+    const restoreTo = previousPaymentStatus[orderId] ?? "pending";
+    updatePaymentStatus(orderId, restoreTo);
+  }
 
   // الطلبات المفلترة حسب التاريخ (لو المطور اختار مدى زمني)، مرتبة الأحدث الأول
   const filteredOrders = useMemo(() => {
@@ -227,14 +245,31 @@ export function OrdersView() {
             >
               <div className="flex flex-wrap items-center gap-2">
                 {order.displayNumber && (
-                  <span className="flex items-center gap-1 rounded-full bg-forest/10 px-2.5 py-1 text-xs font-bold text-forest-deep">
-                    <Hash className="h-3 w-3" /> {order.displayNumber}
+                  <span className="flex items-center gap-1 rounded-full bg-forest/10 px-2.5 py-1 text-sm font-bold text-forest-deep">
+                    <Hash className="h-3.5 w-3.5" /> {order.displayNumber}
                   </span>
                 )}
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
                   {formatTime(order.createdAt)}
                 </div>
+                <span
+                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
+                    order.fulfillmentType === "delivery"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-purple-100 text-purple-700"
+                  }`}
+                >
+                  {order.fulfillmentType === "delivery" ? (
+                    <>
+                      <Truck className="h-3.5 w-3.5" /> توصيل
+                    </>
+                  ) : (
+                    <>
+                      <Store className="h-3.5 w-3.5" /> استلام من الفرع
+                    </>
+                  )}
+                </span>
               </div>
 
               <div className="mt-2.5 flex items-center justify-between gap-2">
@@ -257,15 +292,18 @@ export function OrdersView() {
 
                 {order.paymentStatus !== "paid" ? (
                   <button
-                    onClick={() => updatePaymentStatus(order.id, "paid")}
+                    onClick={() => markPaid(order.id, order.paymentStatus)}
                     className="flex shrink-0 items-center gap-1 rounded-full border-2 border-emerald-500 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
                   >
                     <Check className="h-3.5 w-3.5" /> اتحصّل
                   </button>
                 ) : (
-                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">
+                  <button
+                    onClick={() => undoPaid(order.id)}
+                    className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
+                  >
                     <Check className="h-3.5 w-3.5" /> اتحصّل
-                  </span>
+                  </button>
                 )}
               </div>
 
@@ -291,11 +329,15 @@ export function OrdersView() {
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fire" />
-                  <span className="text-forest-deep">
-                    {order.fulfillmentType === "pickup"
-                      ? "استلام من الفرع"
-                      : order.customerAddress || "—"}
-                  </span>
+                  {order.fulfillmentType === "pickup" ? (
+                    <span className="font-bold text-emerald-700">
+                      استلام من فرع{" "}
+                      {branches.find((b) => b.id === order.pickupBranchId)?.nameAr ||
+                        "غير محدد"}
+                    </span>
+                  ) : (
+                    <span className="text-forest-deep">{order.customerAddress || "—"}</span>
+                  )}
                 </div>
               </div>
 

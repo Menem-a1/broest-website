@@ -138,15 +138,48 @@ export function CartDrawer() {
       fulfillment,
       { customerUserId: session?.user?.id }
     );
-    setSubmitting(false);
 
-    if (result.success) {
-      setDisplayNumber(result.displayNumber);
-      setStep("success");
-      clearCart();
-    } else {
+    if (!result.success) {
+      setSubmitting(false);
       setFormError(result.errorMessage || "حصلت مشكلة في إرسال الطلب، حاول تاني");
+      return;
     }
+
+    // لو الدفع بالفيزا، لازم نوجه العميل لصفحة الدفع بتاعة Paymob
+    // قبل ما نعتبر الطلب خلص. الطلب اتسجل بالفعل بحالة "لسه ماتدفعش"،
+    // وهيتأكد إنه "مدفوع" بس لما Paymob يبعتلنا إشعار حقيقي بنجاح الدفع.
+    if (paymentMethod === "card" && result.orderId) {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-paymob-payment`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ order_id: result.orderId }),
+          }
+        );
+        const data = await res.json();
+
+        if (!res.ok || !data.checkout_url) {
+          setSubmitting(false);
+          setFormError("حصلت مشكلة في فتح صفحة الدفع، حاول تاني أو اختار الكاش عند الاستلام");
+          return;
+        }
+
+        // بنوجه العميل فعليًا لصفحة الدفع عند Paymob
+        window.location.href = data.checkout_url;
+        return;
+      } catch {
+        setSubmitting(false);
+        setFormError("حصلت مشكلة في الاتصال ببوابة الدفع، حاول تاني أو اختار الكاش عند الاستلام");
+        return;
+      }
+    }
+
+    setSubmitting(false);
+    setDisplayNumber(result.displayNumber);
+    setStep("success");
+    clearCart();
   }
 
   return (

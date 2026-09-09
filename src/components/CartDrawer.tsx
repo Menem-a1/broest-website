@@ -26,6 +26,7 @@ import {
 import { saveOrder } from "@/lib/useOrders";
 import type { FulfillmentInfo } from "@/lib/useOrders";
 import type { PaymentMethod } from "@/lib/payment/types";
+import { supabase } from "@/lib/supabase";
 
 type Step = "cart" | "checkout" | "success";
 type FulfillmentChoice = "delivery" | "pickup";
@@ -149,31 +150,21 @@ export function CartDrawer() {
     // قبل ما نعتبر الطلب خلص. الطلب اتسجل بالفعل بحالة "لسه ماتدفعش"،
     // وهيتأكد إنه "مدفوع" بس لما Paymob يبعتلنا إشعار حقيقي بنجاح الدفع.
     if (paymentMethod === "card" && result.orderId) {
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-paymob-payment`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ order_id: result.orderId }),
-          }
-        );
-        const data = await res.json();
+      const { data, error: invokeError } = await supabase.functions.invoke(
+        "create-paymob-payment",
+        { body: { order_id: result.orderId } }
+      );
 
-        if (!res.ok || !data.checkout_url) {
-          setSubmitting(false);
-          setFormError("حصلت مشكلة في فتح صفحة الدفع، حاول تاني أو اختار الكاش عند الاستلام");
-          return;
-        }
-
-        // بنوجه العميل فعليًا لصفحة الدفع عند Paymob
-        window.location.href = data.checkout_url;
-        return;
-      } catch {
+      if (invokeError || !data?.checkout_url) {
+        console.error("Paymob payment error:", invokeError, data);
         setSubmitting(false);
-        setFormError("حصلت مشكلة في الاتصال ببوابة الدفع، حاول تاني أو اختار الكاش عند الاستلام");
+        setFormError("حصلت مشكلة في فتح صفحة الدفع، حاول تاني أو اختار الكاش عند الاستلام");
         return;
       }
+
+      // بنوجه العميل فعليًا لصفحة الدفع عند Paymob
+      window.location.href = data.checkout_url;
+      return;
     }
 
     setSubmitting(false);

@@ -10,8 +10,6 @@ import type { PaymentSettings } from "./types";
 
 const FALLBACK: PaymentSettings = {
   gatewayEnabled: false,
-  paymobApiKey: "",
-  paymobIntegrationId: "",
 };
 
 export function usePaymentSettings() {
@@ -39,22 +37,12 @@ export function usePaymentSettings() {
         return;
       }
 
-      // الخطوة 2: نجيب بيانات Paymob (المفتاح ورقم الـ Integration).
-      // العميل العادي مش هيقدر يقراها (محمية بالتصميم)، وده متوقع
-      // وسليم — الفرونت إند مش محتاج المفتاح نفسه أصلاً عشان يعرض
-      // الزرار، محتاجه بس لوحة تحكم الأدمن.
-      const { data: secrets } = await supabase
-        .from("payment_secrets")
-        .select("paymob_secret_key, paymob_integration_id")
-        .eq("id", 1)
-        .maybeSingle();
-
-      if (!isMounted) return;
-
+      // الموقع العام محتاج بس يعرف هل الدفع الإلكتروني مفعّل ولا لأ،
+      // عشان يقرر يعرض خيار الفيزا في السلة. مش محتاج ولا لازم يوصل
+      // لأي مفتاح أو سر بتاع Paymob خالص — دي بيانات سيرفر بس،
+      // بيستخدمها create-paymob-payment و paymob-webhook مباشرة.
       setSettings({
         gatewayEnabled: general.payment_gateway_enabled,
-        paymobApiKey: secrets?.paymob_secret_key || "",
-        paymobIntegrationId: secrets?.paymob_integration_id || "",
       });
       setLoading(false);
     }

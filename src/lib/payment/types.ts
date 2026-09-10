@@ -8,8 +8,6 @@ export type PaymentStatus = "pending" | "paid" | "failed";
 
 export type PaymentSettings = {
   gatewayEnabled: boolean;
-  paymobApiKey: string;
-  paymobIntegrationId: string;
 };
 
 export function paymentMethodLabel(method: PaymentMethod): string {

@@ -23,15 +23,19 @@ type Settings = {
 };
 
 type PaymentSecrets = {
-  paymob_api_key: string;
+  paymob_secret_key: string;
+  paymob_public_key: string;
   paymob_integration_id: string;
+  paymob_hmac_secret: string;
 };
 
 export function SettingsEditor() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [secrets, setSecrets] = useState<PaymentSecrets>({
-    paymob_api_key: "",
+    paymob_secret_key: "",
+    paymob_public_key: "",
     paymob_integration_id: "",
+    paymob_hmac_secret: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,16 +51,20 @@ export function SettingsEditor() {
       if (data) setSettings(data);
 
       // بيانات Paymob محفوظة في جدول منفصل ومحمي (payment_secrets)،
-      // مش في restaurant_settings — عشان محدش يقدر يشوفها إلا المطور
+      // مش في restaurant_settings — عشان محدش يقدر يشوفها إلا المطور.
+      // دول نفس الأعمدة اللي create-paymob-payment و paymob-webhook
+      // بيقروا منها فعليًا.
       const { data: secretsData } = await supabase
         .from("payment_secrets")
-        .select("paymob_api_key, paymob_integration_id")
+        .select("paymob_secret_key, paymob_public_key, paymob_integration_id, paymob_hmac_secret")
         .eq("id", 1)
         .maybeSingle();
       if (secretsData) {
         setSecrets({
-          paymob_api_key: secretsData.paymob_api_key || "",
+          paymob_secret_key: secretsData.paymob_secret_key || "",
+          paymob_public_key: secretsData.paymob_public_key || "",
           paymob_integration_id: secretsData.paymob_integration_id || "",
+          paymob_hmac_secret: secretsData.paymob_hmac_secret || "",
         });
       }
 
@@ -246,17 +254,31 @@ export function SettingsEditor() {
         <div className="flex flex-col gap-4">
           <div>
             <label className="mb-1 block text-sm font-semibold text-forest-deep">
-              Paymob API Key
+              Paymob Secret Key
             </label>
             <input
               type="password"
-              value={secrets.paymob_api_key}
+              value={secrets.paymob_secret_key}
               onChange={(e) =>
-                setSecrets((prev) => ({ ...prev, paymob_api_key: e.target.value }))
+                setSecrets((prev) => ({ ...prev, paymob_secret_key: e.target.value }))
               }
               className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
               dir="ltr"
               placeholder="هتلاقيه في حسابك على Paymob بعد التسجيل"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-forest-deep">
+              Paymob Public Key
+            </label>
+            <input
+              type="password"
+              value={secrets.paymob_public_key}
+              onChange={(e) =>
+                setSecrets((prev) => ({ ...prev, paymob_public_key: e.target.value }))
+              }
+              className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
+              dir="ltr"
             />
           </div>
           <div>
@@ -270,6 +292,21 @@ export function SettingsEditor() {
               }
               className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
               dir="ltr"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-forest-deep">
+              Paymob HMAC Secret
+            </label>
+            <input
+              type="password"
+              value={secrets.paymob_hmac_secret}
+              onChange={(e) =>
+                setSecrets((prev) => ({ ...prev, paymob_hmac_secret: e.target.value }))
+              }
+              className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2.5 text-sm"
+              dir="ltr"
+              placeholder="من إعدادات الـ Webhook في حسابك على Paymob"
             />
           </div>
         </div>

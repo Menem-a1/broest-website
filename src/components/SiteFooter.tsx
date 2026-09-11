@@ -4,10 +4,9 @@ import { useFooterSettings } from "@/lib/useFooterSettings";
 import { Link } from "react-router-dom";
 import { Phone, MapPin, Clock } from "lucide-react";
 
-// دي قيم تسويقية بسيطة مش محتاجة تتعدل باستمرار، فسايبينها هنا
-// (لو حبيت تضيفها للوحة التحكم بعدين، سهل تتنقل لجدول restaurant_settings)
+// دي قيمة تسويقية بسيطة مش محتاجة تتعدل باستمرار، فسايبينها هنا
+// (التقييم بقى بييجي من بيانات الفرع نفسه، مش ثابت هنا)
 const TAGLINE_AR = "فراخ مقرمشه. من غير كلام كتير.";
-const RATING_VALUE = 4.2;
 const RATING_COUNT = 930;
 
 export function SiteFooter() {
@@ -62,7 +61,19 @@ export function SiteFooter() {
             {primaryBranch && (
               <>
                 <li className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-fire" />
+                  {primaryBranch.googleMapsUrl ? (
+                    <a
+                      href={primaryBranch.googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="افتح موقع الفرع على خرائط جوجل"
+                      className="mt-0.5 shrink-0 text-fire transition-colors hover:text-fire-light"
+                    >
+                      <MapPin className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-fire" />
+                  )}
                   <span>{primaryBranch.addressAr}</span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -85,7 +96,7 @@ export function SiteFooter() {
           </h4>
           <div className="mt-3 flex items-center gap-2">
             <span className="font-price text-2xl font-bold text-cream">
-              {RATING_VALUE}
+              {primaryBranch ? primaryBranch.rating : "—"}
             </span>
             <div className="text-fire">★★★★☆</div>
           </div>

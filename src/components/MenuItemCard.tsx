@@ -4,6 +4,7 @@ import { useCart } from "@/context/CartContext";
 import { useCustomerAuth } from "@/context/CustomerAuthContext";
 import { useFavorites } from "@/lib/useFavorites";
 import { useMenuDiscounts } from "@/lib/useMenuDiscounts";
+import { ImageWithState } from "@/components/ImageWithState";
 import { Plus, Check, Heart } from "lucide-react";
 
 // favoriteIds/toggleFavorite/applyDiscount اختيارية: لو الصفحة الأب (زي Menu.tsx)
@@ -49,11 +50,10 @@ export function MenuItemCard({
       <div>
         {item.imageUrl && (
           <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-lg bg-muted">
-            <img
+            <ImageWithState
               src={item.imageUrl}
               alt={item.nameAr}
               className="h-full w-full object-cover"
-              loading="lazy"
             />
             {session && (
               <button

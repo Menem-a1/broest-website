@@ -5,7 +5,7 @@
 // =====================================================
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Trash2, Plus, Save, Loader2, EyeOff, Eye, Check, MapPinned } from "lucide-react";
+import { Trash2, Plus, Save, Loader2, EyeOff, Eye, Check, MapPinned, Star } from "lucide-react";
 
 type DbBranch = {
   id: string;
@@ -16,6 +16,7 @@ type DbBranch = {
   latitude: number | null;
   longitude: number | null;
   google_maps_url: string;
+  rating: number;
   opens_at: string;
   closes_at: string;
   is_active: boolean;
@@ -29,6 +30,7 @@ const EMPTY_BRANCH = {
   latitude: null,
   longitude: null,
   google_maps_url: "",
+  rating: 4.2,
   opens_at: "10:00",
   closes_at: "02:00",
   is_active: true,
@@ -67,6 +69,7 @@ export function BranchesEditor() {
         latitude: branch.latitude,
         longitude: branch.longitude,
         google_maps_url: branch.google_maps_url,
+        rating: branch.rating,
         opens_at: branch.opens_at,
         closes_at: branch.closes_at,
         is_active: branch.is_active,
@@ -223,6 +226,30 @@ export function BranchesEditor() {
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
                   لو بيقفل بعد نص الليل (زي 2 صباحًا)، اكتب 02:00 عادي
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <Star className="h-3.5 w-3.5" /> التقييم (من ٥)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={5}
+                  step={0.1}
+                  value={branch.rating}
+                  onChange={(e) => {
+                    const raw = parseFloat(e.target.value);
+                    if (Number.isNaN(raw)) return;
+                    const clamped = Math.min(5, Math.max(0, raw));
+                    updateLocal(branch.id, { rating: clamped });
+                  }}
+                  className="w-full rounded-lg border border-forest/15 px-3 py-2 text-sm"
+                  dir="ltr"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  ده اللي بيظهر للعميل في الصفحة الرئيسية وصفحة "عننا"
                 </p>
               </div>
 

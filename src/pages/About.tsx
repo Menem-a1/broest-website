@@ -1,12 +1,16 @@
 import { Star, Loader2 } from "lucide-react";
 import { useReviews } from "@/lib/useReviews";
+import { useBranches } from "@/lib/useBranches";
 
-// قيم التقييم — ثابتة هنا لأنها مش محتاجة تتعدل كل يوم
-const RATING_VALUE = 4.2;
+// عدد التقييمات — قيمة تسويقية ثابتة، مش مرتبطة بفرع معين
+// (التقييم نفسه بقى بييجي من بيانات الفرع الأساسي)
 const RATING_COUNT = 930;
 
 export function About() {
   const { reviews, loading } = useReviews();
+  const { branches } = useBranches();
+  const primaryBranch = branches[0];
+  const ratingDisplay = primaryBranch ? String(primaryBranch.rating) : "—";
 
   return (
     <div>
@@ -28,7 +32,7 @@ export function About() {
           {[
             { num: "٥", label: "سنين خبرة في الدجاج المقرمش" },
             { num: "٩٣٠+", label: "تقييم من عملاء حقيقيين" },
-            { num: "٤.٢", label: "تقييم متوسط من ٥" },
+            { num: ratingDisplay, label: "تقييم متوسط من ٥" },
           ].map((s, i) => (
             <div key={i} className="rounded-xl border border-forest/10 bg-paper p-8 text-center">
               <div className="font-display text-4xl font-bold text-fire">{s.num}</div>
@@ -44,7 +48,7 @@ export function About() {
             <h2 className="font-display text-3xl font-bold text-forest-deep">آراء عملائنا</h2>
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Star className="h-4 w-4 fill-fire text-fire" />
-              <span className="font-semibold text-forest-deep">{RATING_VALUE}</span>
+              <span className="font-semibold text-forest-deep">{ratingDisplay}</span>
               <span>({RATING_COUNT} تقييم)</span>
             </div>
           </div>

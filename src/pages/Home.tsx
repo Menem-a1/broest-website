@@ -6,9 +6,9 @@ import { useMenu } from "@/lib/useMenu";
 import { useHomeContent } from "@/lib/useHomeContent";
 import { useCuratedFavorites } from "@/lib/useCuratedFavorites";
 import { MenuItemCard } from "@/components/MenuItemCard";
+import { ImageWithState } from "@/components/ImageWithState";
 
-// دي القيم اللي بتظهر في قسم "الأكتر طلباً" — تقدر تغيرها بتعديل الأرقام هنا
-const RATING_VALUE = 4.2;
+// عدد التقييمات — قيمة تسويقية ثابتة، مش مرتبطة بفرع معين
 const RATING_COUNT = 930;
 
 export function Home() {
@@ -71,7 +71,7 @@ export function Home() {
             <div className="mt-9 flex flex-wrap items-center gap-6 text-sm text-cream/60">
               <div className="flex items-center gap-1.5">
                 <Star className="h-4 w-4 fill-fire text-fire" />
-                <span className="font-semibold text-cream">{RATING_VALUE}</span>
+                <span className="font-semibold text-cream">{primaryBranch ? primaryBranch.rating : "—"}</span>
                 <span>({RATING_COUNT} تقييم)</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -89,8 +89,8 @@ export function Home() {
             {contentLoading ? (
               <div className="h-full w-full animate-pulse rounded-3xl bg-cream/10" />
             ) : content.heroImageUrl ? (
-              <div className="h-full w-full overflow-hidden rounded-3xl">
-                <img
+              <div className="relative h-full w-full overflow-hidden rounded-3xl">
+                <ImageWithState
                   src={content.heroImageUrl}
                   alt={content.heroTitleLine1}
                   className="h-full w-full object-cover"

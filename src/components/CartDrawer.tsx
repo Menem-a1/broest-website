@@ -126,6 +126,10 @@ export function CartDrawer() {
     }
 
     setSubmitting(true);
+    // مفتاح فريد للمحاولة دي بالذات، بيتولّد مرة واحدة بس هنا، عشان لو
+    // حصل أي إعادة إرسال لنفس الطلب (ضغطة مزدوجة أو مشكلة شبكة)
+    // قاعدة البيانات تتعرف إنها نفس المحاولة وما تعملش طلب تاني مكرر
+    const clientRequestId = crypto.randomUUID();
     const result = await saveOrder(
       lines,
       totalPrice,
@@ -137,7 +141,7 @@ export function CartDrawer() {
       },
       paymentMethod,
       fulfillment,
-      { customerUserId: session?.user?.id }
+      { customerUserId: session?.user?.id, clientRequestId }
     );
 
     if (!result.success) {

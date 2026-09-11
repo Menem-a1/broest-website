@@ -15,6 +15,7 @@ export type Branch = {
   latitude: number | null;
   longitude: number | null;
   googleMapsUrl: string;
+  rating: number;
   opensAt: string; // "10:00"
   closesAt: string; // "02:00"
   isActive: boolean;
@@ -92,6 +93,7 @@ export function useBranches() {
             latitude: b.latitude,
             longitude: b.longitude,
             googleMapsUrl: b.google_maps_url || "",
+            rating: b.rating,
             opensAt: b.opens_at,
             closesAt: b.closes_at,
             isActive: b.is_active,

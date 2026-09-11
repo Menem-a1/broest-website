@@ -46,7 +46,10 @@ export function useMenuDiscounts(enabled: boolean = true) {
         ? price - (price * d.discount_value) / 100
         : price - d.discount_value
     );
-    return Math.max(0, Math.min(...prices));
+    // بنقرب لأقرب رقم صحيح عشان نمنع مشاكل الفاصلة العشرية
+    // (زي 45.650000000000006) من الظهور للعميل، وعشان نتماشى مع
+    // نفس أسلوب تقريب الأسعار المستخدم في باقي النظام
+    return Math.floor(Math.max(0, Math.min(...prices)));
   }
 
   return { discounts, loading, applyDiscount, refetch: fetchDiscounts };

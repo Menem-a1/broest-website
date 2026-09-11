@@ -78,7 +78,7 @@ export async function saveOrder(
   customer: CustomerInfo,
   paymentMethod: PaymentMethod = "cash",
   fulfillment: FulfillmentInfo,
-  extras?: { customerUserId?: string }
+  extras?: { customerUserId?: string; clientRequestId?: string }
 ) {
   const cooldown = checkOrderCooldown();
   if (!cooldown.allowed) {
@@ -117,6 +117,11 @@ export async function saveOrder(
       pickup_branch_id: fulfillment.type === "pickup" ? fulfillment.branchId : "",
       payment_method: paymentMethod,
       customer_user_id: extras?.customerUserId || "",
+      // مفتاح فريد لمحاولة الطلب دي بالذات، بيتولّد مرة واحدة في الفرونت
+      // ويتحقق منه في قاعدة البيانات (unique index) عشان نمنع إنشاء
+      // طلبين لنفس المحاولة، حتى لو الزرار اتضغط مرتين أو الريكوست
+      // اتبعت مباشرة من غير المرور بواجهة الموقع
+      client_request_id: extras?.clientRequestId || "",
     },
   });
 

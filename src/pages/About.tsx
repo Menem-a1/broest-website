@@ -19,10 +19,10 @@ export function About() {
           حكايتنا
         </span>
         <h1 className="mx-auto mt-2 max-w-2xl font-display text-4xl font-bold text-cream md:text-5xl">
-          بدأنا بفكرة بسيطة: دجاج تندوري حقيقي
+          بدأنا بفكرة بسيطة: دجاج بروستد حقيقي
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-cream/70">
-          مش مجرد بروست تاني. بروست بيقدملك وصفة تندوري مميزة، ومكونات طازة كل يوم،
+          مش مجرد بروست تاني. بروست بيقدملك وصفة دجاج مميزة، ومكونات طازة كل يوم،
           عشان كل قضمة تفرق.
         </p>
       </section>

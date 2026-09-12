@@ -30,9 +30,9 @@ export function About() {
       <section className="mx-auto max-w-6xl px-4 py-16 md:px-8">
         <div className="grid gap-8 md:grid-cols-3">
           {[
-            { num: "٥", label: "سنين خبرة في الدجاج المقرمش" },
-            { num: "٩٣٠+", label: "تقييم من عملاء حقيقيين" },
-            { num: ratingDisplay, label: "تقييم متوسط من ٥" },
+            { num: "+10", label: "سنين خبرة في الدجاج المقرمش" },
+            { num: "+930", label: "تقييم من عملاء حقيقيين" },
+            { num: ratingDisplay, label: "تقييم متوسط من 5" },
           ].map((s, i) => (
             <div key={i} className="rounded-xl border border-forest/10 bg-paper p-8 text-center">
               <div className="font-display text-4xl font-bold text-fire">{s.num}</div>
